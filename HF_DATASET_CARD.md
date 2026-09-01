@@ -27,7 +27,7 @@ Stats: 1519 chunks / 54 docs. Largest: CJIS-6.1 466, IRS-1075 228, SOX 226. Prov
 
 ```python
 from datasets import load_dataset
-ds = load_dataset("dataengineergaurav/compliance-data")["train"]
+ds = load_dataset("GauravGurjar/compliance-data")["train"]
 # or
 import pandas as pd
 df = pd.read_parquet("data/compliance_chunks.parquet")

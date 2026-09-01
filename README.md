@@ -36,6 +36,6 @@ pixi install
 pixi run pipeline run_id=2026-09-01   # crawl → verify_bronze → build_silver → verify_silver
 ```
 
-**Try without installing:** [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/dataengineergaurav/compliance-data/blob/main/notebooks/01_search.ipynb) · [Hugging Face](https://huggingface.co/datasets/dataengineergaurav/compliance-data) (after `HF_TOKEN` publish) · License: `MIT` (code) + `CC-BY-4.0` (data)
+**Try without installing:** [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/dataengineergaurav/compliance-data/blob/main/notebooks/01_search.ipynb) · [Hugging Face](https://huggingface.co/datasets/GauravGurjar/compliance-data) · License: `MIT` (code) + `CC-BY-4.0` (data)
 
 Docs: `docs/DATA_PIPELINE.md` · Sources: `data/sources.json` · Releases: `https://github.com/dataengineergaurav/compliance-data/releases`

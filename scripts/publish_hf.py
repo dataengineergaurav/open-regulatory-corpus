@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 from huggingface_hub import HfApi
 
-REPO_ID = os.environ.get("HF_REPO_ID", "dataengineergaurav/compliance-data")
+REPO_ID = os.environ.get("HF_REPO_ID", "GauravGurjar/compliance-data")
 PARQUET = Path("data/silver/compliance_chunks.parquet")
 CARD = Path("HF_DATASET_CARD.md")  # optional
 
