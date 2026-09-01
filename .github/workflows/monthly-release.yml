@@ -66,6 +66,8 @@ jobs:
         run: |
           RUN_ID=${RUN_ID:-$(basename $(readlink data/bronze/latest))}
           TAG="bronze-silver-${RUN_ID}"
+          CHUNKS=$(jq -r .chunks data/silver/silver_stats.json 2>/dev/null || echo '?')
+          DOCS=$(jq -r .docs data/silver/silver_stats.json 2>/dev/null || echo '?')
           # idempotent: delete existing tag/release if manual re-run
           gh release view "$TAG" >/dev/null 2>&1 && gh release delete "$TAG" --yes || true
           git tag -d "$TAG" 2>/dev/null || true
@@ -74,7 +76,7 @@ jobs:
             --notes "Automated monthly release.
 
           **Bronze** ${RUN_ID}: 58 raw (27 PDFs) — manifest.jsonl + headers + raw/
-          **Silver** ${RUN_ID}: \$(jq -r .chunks data/silver/silver_stats.json 2>/dev/null || echo '?') chunks, \$(jq -r .docs data/silver/silver_stats.json 2>/dev/null || echo '?') docs — compliance_chunks.parquet (512/50 word chunks, trafilatura+fitz)
+          **Silver** ${RUN_ID}: ${CHUNKS} chunks, ${DOCS} docs — compliance_chunks.parquet (512/50 word chunks, trafilatura+fitz)
 
           Verification: \`verify_bronze.py\` BRONZE OK, \`verify_silver.py\` SILVER OK.
           Sources: 38 public + 8 skipped (ISO×6 + SOC2 + PCI-DSS) — see data/sources.json
