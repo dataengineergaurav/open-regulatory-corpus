@@ -1,0 +1,35 @@
+# pixi
+.pixi/
+pixi.lock
+
+# scrapy
+.scrapy/
+scraper/.scrapy/
+scraper/data/
+
+# python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+*.egg-info/
+
+# data - keep manifests/small silver in git, exclude large raw per-run
+# Uncomment to track everything (current docs say data/ tracked):
+# data/bronze/*/raw/
+# data/bronze/*/headers/
+# To enable Release-only large files (recommended for GitHub):
+data/bronze/*/raw/
+data/bronze/*/headers/
+# keep latest symlink + manifest/stats if you want audit trail without 44M per commit:
+# !data/bronze/latest
+# !data/bronze/*/manifest.jsonl
+# !data/bronze/*/scrapy_stats.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# logs
+*.log
+scrapy.log

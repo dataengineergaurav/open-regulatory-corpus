@@ -1,0 +1,16 @@
+BOT_NAME = "compliance_scraper"
+SPIDER_MODULES = ["compliance_scraper.spiders"]
+NEWSPIDER_MODULE = "compliance_scraper.spiders"
+ROBOTSTXT_OBEY = True
+AUTOTHROTTLE_ENABLED = True
+AUTOTHROTTLE_START_DELAY = 1
+AUTOTHROTTLE_TARGET_CONCURRENCY = 2
+CONCURRENT_REQUESTS = 4
+DOWNLOAD_DELAY = 1
+RETRY_TIMES = 2
+HTTPCACHE_ENABLED = True
+HTTPCACHE_EXPIRATION_SECS = 86400 * 7
+LOG_LEVEL = "INFO"
+USER_AGENT = "Mozilla/5.0 (compatible; compliance-scraper/1.0; +https://example.com)"
+DOWNLOAD_TIMEOUT = 30
+ITEM_PIPELINES = {"compliance_scraper.pipelines.RawPipeline": 100}

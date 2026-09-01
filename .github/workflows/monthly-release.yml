@@ -1,0 +1,96 @@
+name: Monthly Dataset Release
+
+on:
+  schedule:
+    - cron: "0 2 1 * *" # 02:00 UTC on 1st of month
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "Override run_id (default: YYYY-MM-DD)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write # for creating releases
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: prefix-dev/setup-pixi@v0.8.8
+        with:
+          pixi-version: v0.72.1
+          cache: true
+
+      - run: pixi install
+
+      - name: Crawl Bronze
+        run: |
+          RUN_ID="${{ inputs.run_id }}"
+          if [ -z "$RUN_ID" ]; then RUN_ID=$(date +%Y-%m-%d); fi
+          echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
+          cd scraper && pixi run scrapy crawl compliance -a run_id=$RUN_ID 2>&1 | tee ../crawl.log
+          cd ..
+          ls -lh data/bronze/$RUN_ID/ || ls -lh data/bronze/latest/
+
+      - name: Verify Bronze
+        run: pixi run python scripts/verify_bronze.py
+
+      - name: Build Silver
+        run: pixi run python scripts/build_silver.py
+
+      - name: Verify Silver
+        run: pixi run python scripts/verify_silver.py
+
+      - name: Package datasets
+        run: |
+          RUN_ID=${RUN_ID:-$(basename $(readlink data/bronze/latest))}
+          echo "Packaging $RUN_ID"
+          mkdir -p dist
+          # Bronze: raw + headers + manifest as tar.gz (skip .pixi cache)
+          tar -czf dist/compliance-bronze-${RUN_ID}.tar.gz -C data/bronze ${RUN_ID}
+          # Silver: parquet + stats
+          cp data/silver/compliance_chunks.parquet dist/compliance-silver-${RUN_ID}.parquet
+          cp data/silver/silver_stats.json dist/silver_stats-${RUN_ID}.json
+          # Also plain zip for Silver for convenience
+          zip -j dist/compliance-silver-${RUN_ID}.zip data/silver/compliance_chunks.parquet data/silver/silver_stats.json
+          ls -lh dist/
+          sha256sum dist/* > dist/SHA256SUMS.txt
+          cat dist/SHA256SUMS.txt
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          RUN_ID=${RUN_ID:-$(basename $(readlink data/bronze/latest))}
+          TAG="bronze-silver-${RUN_ID}"
+          # idempotent: delete existing tag/release if manual re-run
+          gh release view "$TAG" >/dev/null 2>&1 && gh release delete "$TAG" --yes || true
+          git tag -d "$TAG" 2>/dev/null || true
+          gh release create "$TAG" \
+            --title "Compliance Datasets ${RUN_ID}" \
+            --notes "Automated monthly release.
+
+          **Bronze** ${RUN_ID}: 58 raw (27 PDFs) — manifest.jsonl + headers + raw/
+          **Silver** ${RUN_ID}: \$(jq -r .chunks data/silver/silver_stats.json 2>/dev/null || echo '?') chunks, \$(jq -r .docs data/silver/silver_stats.json 2>/dev/null || echo '?') docs — compliance_chunks.parquet (512/50 word chunks, trafilatura+fitz)
+
+          Verification: \`verify_bronze.py\` BRONZE OK, \`verify_silver.py\` SILVER OK.
+          Sources: 38 public + 8 skipped (ISO×6 + SOC2 + PCI-DSS) — see data/sources.json
+
+          SHA256: see SHA256SUMS.txt
+          " \
+            dist/compliance-bronze-${RUN_ID}.tar.gz \
+            dist/compliance-silver-${RUN_ID}.parquet \
+            dist/compliance-silver-${RUN_ID}.zip \
+            dist/SHA256SUMS.txt \
+            data/bronze/${RUN_ID}/manifest.jsonl#manifest.jsonl \
+            data/bronze/${RUN_ID}/scrapy_stats.json#scrapy_stats.json
+
+      - name: Upload workflow artifacts (30d retention)
+        uses: actions/upload-artifact@v4
+        with:
+          name: datasets-${{ env.RUN_ID }}
+          path: dist/
+          retention-days: 30

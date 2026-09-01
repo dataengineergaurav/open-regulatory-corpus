@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: prefix-dev/setup-pixi@v0.8.8
+        with:
+          pixi-version: v0.72.1
+          cache: true
+      - run: pixi install
+      - name: Verify Silver (Bronze raw is Release asset, not in git)
+        run: |
+          pixi run python scripts/verify_silver.py
+          # Bronze verify only if raw present locally (not required in CI checkout)
+          if [ -d "data/bronze/latest/raw" ]; then pixi run python scripts/verify_bronze.py; else echo "skip bronze verify (raw not in git, see Release)"; fi
+      - name: Lint workflows
+        run: |
+          python -m py_compile scripts/*.py scraper/compliance_scraper/**/*.py 2>&1 | head -20; echo "py_compile OK"

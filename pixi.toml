@@ -1,0 +1,31 @@
+[workspace]
+authors = ["dataengineergaurav <ggurjar333@gmail.com>"]
+channels = ["conda-forge"]
+name = "compliance-data"
+platforms = ["osx-arm64", "linux-64"]
+version = "0.1.0"
+
+[tasks]
+crawl = { cmd = "python -m scrapy crawl compliance -a run_id={{ run_id }}", cwd = "scraper", description = "Crawl Bronze (run: pixi run crawl run_id=2026-09-01)" }
+verify-bronze = { cmd = "python scripts/verify_bronze.py", description = "Verify Bronze" }
+build-silver = { cmd = "python scripts/build_silver.py", description = "Build Silver parquet" }
+verify-silver = { cmd = "python scripts/verify_silver.py", description = "Verify Silver" }
+verify = { cmd = "python scripts/verify_bronze.py && python scripts/verify_silver.py", description = "Verify Bronze+Silver" }
+pipeline = { cmd = "pixi run crawl run_id={{ run_id }} && pixi run verify-bronze && pixi run build-silver && pixi run verify-silver", description = "Full Bronze→Silver pipeline" }
+
+[dependencies]
+python = ">=3.11,<3.13"
+pip = "*"
+packaging = ">=23.2,<25"
+scrapy = ">=2.18.0,<3"
+trafilatura = ">=2.0.0,<3"
+pymupdf = ">=1.28.0,<2"
+
+[pypi-dependencies]
+pandas = "==2.2.2"
+datasets = "==2.20.0"
+# torch/transformers kept for future Gold (embedding) but not required for Bronze/Silver
+# uncomment when needed:
+# torch = "==2.3.1"
+# transformers = "==4.41.2"
+# sentence-transformers = "==3.0.1"
