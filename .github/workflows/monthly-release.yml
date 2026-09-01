@@ -91,7 +91,6 @@ jobs:
             data/bronze/${RUN_ID}/scrapy_stats.json#scrapy_stats.json
 
       - name: Publish to Hugging Face
-        if: ${{ secrets.HF_TOKEN != '' }}
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
