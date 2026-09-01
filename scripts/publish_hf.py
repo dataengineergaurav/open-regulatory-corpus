@@ -21,16 +21,43 @@ def main():
         return
     api = HfApi(token=token)
     api.create_repo(REPO_ID, repo_type="dataset", exist_ok=True)
+    # dated copy + latest for change detection (ponytail: 2 files, history via git log)
+    import json, datetime
+    run_id = os.environ.get("RUN_ID") or Path("data/silver/silver_stats.json").read_text()[:100] if Path("data/silver/silver_stats.json").exists() else ""
+    try:
+        stats = json.loads(Path("data/silver/silver_stats.json").read_text())
+        run_id = stats.get("run_id", "").split("/")[-1] or os.environ.get("RUN_ID", "")
+    except Exception:
+        run_id = os.environ.get("RUN_ID", "")
+    if not run_id or "/" in run_id:
+        run_id = datetime.date.today().isoformat()
+    # latest (for load_dataset)
     api.upload_file(
         path_or_fileobj=str(PARQUET),
         path_in_repo="data/compliance_chunks.parquet",
         repo_id=REPO_ID,
         repo_type="dataset",
-        commit_message="chore: update Silver 1519 chunks",
+        commit_message=f"chore: update Silver {run_id}",
     )
+    # dated snapshot (detect changes, no overwrite)
+    api.upload_file(
+        path_or_fileobj=str(PARQUET),
+        path_in_repo=f"data/compliance_chunks_{run_id}.parquet",
+        repo_id=REPO_ID,
+        repo_type="dataset",
+        commit_message=f"chore: snapshot Silver {run_id}",
+    )
+    # stats with date
+    if Path("data/silver/silver_stats.json").exists():
+        api.upload_file(
+            path_or_fileobj="data/silver/silver_stats.json",
+            path_in_repo=f"data/silver_stats_{run_id}.json",
+            repo_id=REPO_ID,
+            repo_type="dataset",
+        )
     if CARD.exists():
         api.upload_file(path_or_fileobj=str(CARD), path_in_repo="README.md", repo_id=REPO_ID, repo_type="dataset")
-    print(f"published https://huggingface.co/datasets/{REPO_ID}")
+    print(f"published https://huggingface.co/datasets/{REPO_ID} (latest + dated {run_id})")
 
 if __name__ == "__main__":
     main()
