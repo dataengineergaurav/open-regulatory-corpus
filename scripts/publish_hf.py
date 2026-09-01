@@ -39,19 +39,19 @@ def main():
         repo_type="dataset",
         commit_message=f"chore: update Silver {run_id}",
     )
-    # dated snapshot (detect changes, no overwrite)
+    # dated snapshot (detect changes, in snapshots/ so load_dataset still single file)
     api.upload_file(
         path_or_fileobj=str(PARQUET),
-        path_in_repo=f"data/compliance_chunks_{run_id}.parquet",
+        path_in_repo=f"snapshots/compliance_chunks_{run_id}.parquet",
         repo_id=REPO_ID,
         repo_type="dataset",
         commit_message=f"chore: snapshot Silver {run_id}",
     )
-    # stats with date
+    # stats with date (snapshots/)
     if Path("data/silver/silver_stats.json").exists():
         api.upload_file(
             path_or_fileobj="data/silver/silver_stats.json",
-            path_in_repo=f"data/silver_stats_{run_id}.json",
+            path_in_repo=f"snapshots/silver_stats_{run_id}.json",
             repo_id=REPO_ID,
             repo_type="dataset",
         )
