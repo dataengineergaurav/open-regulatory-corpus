@@ -2,7 +2,7 @@
 
 Public-only corpus: **38 frameworks** → Bronze 58 raw (27 PDFs + 31 HTML, 43M) → Silver `data/silver/compliance_chunks.parquet` (1519 chunks × 512/50, 54 docs incl. secondary PDFs). Monthly Releases.
 
-**Get data:** [Releases](https://github.com/dataengineergaurav/open-regulatory-corpus/releases) — `compliance-silver-*.parquet` (1.6M) + `compliance-bronze-*.tar.gz` (43M raw) + `SHA256SUMS` — and [Hugging Face](https://huggingface.co/datasets/GauravGurjar/open-regulatory-corpus) `load_dataset("GauravGurjar/open-regulatory-corpus")`. No crawl needed.
+**Get data:** [Releases](https://github.com/dataengineergaurav/open-regulatory-corpus/releases) — `open-regulatory-silver-*.parquet` (1.6M) + `open-regulatory-bronze-*.tar.gz` (43M raw) + `SHA256SUMS` — and [Hugging Face](https://huggingface.co/datasets/GauravGurjar/open-regulatory-corpus) `load_dataset("GauravGurjar/open-regulatory-corpus")`. No crawl needed.
 
 **What's inside (38 public, 8 skipped paywalled)**
 
