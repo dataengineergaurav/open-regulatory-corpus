@@ -1,7 +1,5 @@
-# pixi
+# pixi / scrapy
 .pixi/
-
-# scrapy
 .scrapy/
 scraper/.scrapy/
 scraper/data/
@@ -13,22 +11,12 @@ __pycache__/
 .venv/
 *.egg-info/
 
-# data - keep manifests/small silver in git, exclude large raw per-run
-# Uncomment to track everything (current docs say data/ tracked):
-# data/bronze/*/raw/
-# data/bronze/*/headers/
-# To enable Release-only large files (recommended for GitHub):
+# data: raw is Release asset (44M/run), keep parquet+manifest in git
 data/bronze/*/raw/
 data/bronze/*/headers/
-# keep latest symlink + manifest/stats if you want audit trail without 44M per commit:
-# !data/bronze/latest
-# !data/bronze/*/manifest.jsonl
-# !data/bronze/*/scrapy_stats.json
 
-# OS
+# OS / logs
 .DS_Store
 Thumbs.db
-
-# logs
 *.log
 scrapy.log

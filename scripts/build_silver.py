@@ -99,8 +99,6 @@ def main(run_id=None):
     # chunks parquet
     ds = Dataset.from_list(rows) if rows else Dataset.from_dict({"framework_id":[],"chunk_id":[],"text":[]})
     ds.to_parquet(str(out / "compliance_chunks.parquet"))
-    # also clean
-    clean_rows = [{"framework_id": r["framework_id"], "text": r["text"][:5000]} for r in rows[:100]]  # sample
     print(f"Wrote {out/'compliance_chunks.parquet'} ({len(rows)} rows)")
     # write manifest summary
     (out / "silver_stats.json").write_text(json.dumps({"run_id": str(bronze), "chunks": len(rows), "docs": len(seen_hash)}, indent=2))

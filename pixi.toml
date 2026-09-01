@@ -24,8 +24,3 @@ pymupdf = ">=1.28.0,<2"
 [pypi-dependencies]
 pandas = "==2.2.2"
 datasets = "==2.20.0"
-# torch/transformers kept for future Gold (embedding) but not required for Bronze/Silver
-# uncomment when needed:
-# torch = "==2.3.1"
-# transformers = "==4.41.2"
-# sentence-transformers = "==3.0.1"
