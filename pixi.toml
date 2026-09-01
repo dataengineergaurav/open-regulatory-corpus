@@ -1,7 +1,7 @@
 [workspace]
 authors = ["dataengineergaurav <ggurjar333@gmail.com>"]
 channels = ["conda-forge"]
-name = "compliance-data"
+name = "open-regulatory-corpus"
 platforms = ["osx-arm64", "linux-64"]
 version = "0.1.0"
 

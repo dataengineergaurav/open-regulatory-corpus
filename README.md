@@ -1,8 +1,8 @@
-# Compliance Data — Bronze → Silver
+# Open Regulatory Corpus — Bronze → Silver
 
 Public-only corpus: **38 frameworks** → Bronze 58 raw (27 PDFs, 44M) → Silver `compliance_chunks.parquet` (1519 chunks × 512/50, 54 docs). Monthly Releases.
 
-**Get data:** [Releases](https://github.com/dataengineergaurav/compliance-data/releases) — `compliance-silver-*.parquet` (1.6M) + `compliance-bronze-*.tar.gz` + `SHA256SUMS`. No crawl needed.
+**Get data:** [Releases](https://github.com/dataengineergaurav/open-regulatory-corpus/releases) — `compliance-silver-*.parquet` (1.6M) + `compliance-bronze-*.tar.gz` + `SHA256SUMS`. No crawl needed.
 
 **What's inside (38 public, 8 skipped paywalled)**
 
@@ -21,7 +21,7 @@ Public-only corpus: **38 frameworks** → Bronze 58 raw (27 PDFs, 44M) → Silve
 **Use the data:**
 ```python
 from datasets import load_dataset
-ds = load_dataset("parquet", data_files="compliance_chunks.parquet")["train"]
+ds = load_dataset("GauravGurjar/open-regulatory-corpus")["train"]
 # filter by framework
 fda = ds.filter(lambda x: x["framework_id"] == "FDA-AI-MD")
 # or with pandas
@@ -36,6 +36,6 @@ pixi install
 pixi run pipeline run_id=2026-09-01   # crawl → verify_bronze → build_silver → verify_silver
 ```
 
-**Try without installing:** [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/dataengineergaurav/compliance-data/blob/main/notebooks/01_search.ipynb) · [Hugging Face](https://huggingface.co/datasets/GauravGurjar/compliance-data) · License: `MIT` (code) + `CC-BY-4.0` (data)
+**Try without installing:** [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/dataengineergaurav/open-regulatory-corpus/blob/main/notebooks/01_search.ipynb) · [Hugging Face](https://huggingface.co/datasets/GauravGurjar/open-regulatory-corpus) · License: `MIT` (code) + `CC-BY-4.0` (data)
 
-Docs: `docs/DATA_PIPELINE.md` · Sources: `data/sources.json` · Releases: `https://github.com/dataengineergaurav/compliance-data/releases`
+Docs: `docs/DATA_PIPELINE.md` · Sources: `data/sources.json` · Releases: `https://github.com/dataengineergaurav/open-regulatory-corpus/releases`

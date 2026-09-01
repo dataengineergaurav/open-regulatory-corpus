@@ -1,13 +1,13 @@
 ---
 license: cc-by-4.0
 task_categories: [feature-extraction, text-retrieval]
-tags: [compliance, ai-governance, nist, gdpr, rag, bronze-silver]
-pretty_name: Compliance Data — Bronze → Silver
+tags: [compliance, ai-governance, nist, gdpr, rag, bronze-silver, open-regulatory-corpus]
+pretty_name: Open Regulatory Corpus — Bronze → Silver
 ---
 
-# Compliance Data — Bronze → Silver
+# Open Regulatory Corpus — Bronze → Silver
 
-Public-only corpus: 38 frameworks → Bronze 58 raw (27 PDFs, 44M) → Silver `compliance_chunks.parquet` (1519 chunks × 512/50, 54 docs). From [dataengineergaurav/compliance-data](https://github.com/dataengineergaurav/compliance-data) (monthly Releases).
+Public-only corpus: 38 frameworks → Bronze 58 raw (27 PDFs, 44M) → Silver `compliance_chunks.parquet` (1519 chunks × 512/50, 54 docs). From [dataengineergaurav/open-regulatory-corpus](https://github.com/dataengineergaurav/open-regulatory-corpus) (monthly Releases).
 
 ## What's inside
 
@@ -27,7 +27,7 @@ Stats: 1519 chunks / 54 docs. Largest: CJIS-6.1 466, IRS-1075 228, SOX 226. Prov
 
 ```python
 from datasets import load_dataset
-ds = load_dataset("GauravGurjar/compliance-data")["train"]
+ds = load_dataset("GauravGurjar/open-regulatory-corpus")["train"]
 # or
 import pandas as pd
 df = pd.read_parquet("data/compliance_chunks.parquet")
