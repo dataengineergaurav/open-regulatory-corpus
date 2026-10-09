@@ -2,7 +2,7 @@
 
 Every artifact this project produces, and every field inside it. If you only read one reference page, make it this one.
 
-All examples are taken verbatim from the current run (`2026-09-01_1903`).
+All examples are taken verbatim from the current run (`2026-10-09`).
 
 ---
 
@@ -12,21 +12,21 @@ All examples are taken verbatim from the current run (`2026-09-01_1903`).
 data/
 ├── sources.json                          the curated input (46 entries)
 ├── bronze/
-│   ├── latest -> 2026-09-01_1903         symlink to newest run
-│   └── 2026-09-01_1903/
-│       ├── manifest.jsonl                70 lines: what happened to each source
+│   ├── latest -> 2026-10-09              symlink to newest run
+│   └── 2026-10-09/
+│       ├── manifest.jsonl                68 lines: what happened to each source
 │       ├── scrapy_stats.json             crawl telemetry
-│       ├── raw/<ID>.<ext>                58 verbatim files (Release asset)
-│       └── headers/<ID>.json             58 HTTP response records (Release asset)
+│       ├── raw/<ID>.<ext>                57 verbatim files (Release asset)
+│       └── headers/<ID>.json             56 HTTP response records (Release asset)
 └── silver/
-    ├── compliance_chunks.parquet         1,519 rows × 7 cols (the usable data)
+    ├── compliance_chunks.parquet         2,041 rows × 7 cols (the usable data)
     ├── balanced_slice.parquet            capped companion slice (≤30 chunks/framework)
     ├── index/<run_id>.json               per-run extracted-text hashes (drift signal)
     ├── quality_report.json               per-document extraction-quality flags
     └── silver_stats.json                 one-line summary
 ```
 
-> `raw/` and `headers/` are `.gitignore`d — they are ~43 MB per run and live as GitHub Release assets. The parquet, manifest, and stats stay in git.
+> `raw/` and `headers/` are `.gitignore`d — they are ~46 MB per run and live as GitHub Release assets. The parquet, manifest, and stats stay in git.
 
 ---
 
@@ -74,7 +74,7 @@ This matters for filtering: `df.framework_id == "SOX"` gets only the primary doc
 df["stem"] = df.framework_id.str.split("_pdf").str[0]
 ```
 
-**Present in Silver:** 31 stems across 54 `framework_id` values.
+**Present in Silver:** 33 stems across 54 `framework_id` values.
 
 ---
 
@@ -84,13 +84,13 @@ One JSON object per line. It is **append-ordered but not strictly chronological*
 
 There are exactly **three line shapes**, distinguished by `status`:
 
-### Shape 1 — `ok` (58 lines)
+### Shape 1 — `ok` (57 lines)
 
 ```json
 {"id": "NIST-CSF2", "url": "https://nvlpubs.nist.gov/nistpubs/CSWP/NIST.CSWP.29.pdf",
  "status": "ok", "content_type": "application/pdf", "bytes": 1518858,
  "sha256_raw": "3c31f46fee98cac0c4323453e5109291a213b4de7fef8c058af9bf67f717433c",
- "fetched_at": "2026-09-01T13:34:01Z"}
+ "fetched_at": "2026-10-09T13:34:01Z"}
 ```
 
 | Field | Meaning |
@@ -109,11 +109,11 @@ There are exactly **three line shapes**, distinguished by `status`:
 
 No `request` was ever sent. This is the ethical record of a deliberate omission.
 
-### Shape 3 — `error` (4 lines)
+### Shape 3 — `error` (3 lines)
 
 ```json
-{"id": "HIPAA", "url": "https://www.hhs.gov/hipaa/...",
- "status": "error", "error": "Ignoring non-200 response", "fetched_at": "2026-09-01T13:34:01Z"}
+{"id": "NYDFS-500", "url": "https://www.dfs.ny.gov/industry_guidance/cybersecurity",
+ "status": "error", "error": "Ignoring non-200 response", "fetched_at": "2026-10-09T13:34:01Z"}
 ```
 
 | Field | Meaning |
@@ -124,18 +124,18 @@ No `request` was ever sent. This is the ethical record of a deliberate omission.
 
 | Status | Count | Interpretation |
 |---|---|---|
-| `ok` | 58 | Landed raw bytes |
+| `ok` | 57 | Landed raw bytes |
 | `skipped_public_only` | 8 | Deliberately not fetched |
-| `error` | 4 | Attempted and failed (WAF 403 / timeout) |
-| **Total** | **70** | |
+| `error` | 3 | Attempted and failed (non-200 / WAF) |
+| **Total** | **68** | |
 
-> `ok` (58) matches the 58 files in `raw/`. Headers may total 58 too; the one historical collision is `CJIS-6.1`, which lands as both `.html` and `.pdf` from a shared stem.
+> `ok` (57) matches the 57 files in `raw/`. Headers may total one fewer; the one historical collision is `CJIS-6.1`, which lands as both `.html` and `.pdf` from a shared stem.
 
 ---
 
 ## `data/bronze/<run_id>/raw/`
 
-58 files, named `<ID><ext>`. The extension is chosen by **magic bytes first**, then content type, then URL — in that order — so the extension always reflects the true format:
+57 files, named `<ID><ext>`. The extension is chosen by **magic bytes first**, then content type, then URL — in that order — so the extension always reflects the true format:
 
 - starts with `%PDF` → `.pdf`
 - `Content-Type` contains `pdf` → `.pdf`
@@ -165,18 +165,18 @@ The full HTTP response record, one file per fetched source. Written by `RawPipel
 
 ## `data/bronze/<run_id>/scrapy_stats.json`
 
-Raw Scrapy telemetry for the run. The fields most worth knowing:
+Raw Scrapy telemetry for the run. The fields most worth knowing (example: run `2026-10-09`):
 
 | Key | Example | Meaning |
 |---|---|---|
-| `downloader/response_status_count/200` | `84` | Successful responses |
-| `downloader/response_status_count/403` | `5` | Blocked (WAF) |
+| `downloader/response_status_count/200` | `86` | Successful responses |
+| `downloader/response_status_count/403` | `10` | Blocked (WAF) |
 | `downloader/response_status_count/404` | `2` | Not found |
-| `downloader/exception_count` | `6` | Network-level failures |
-| `item_scraped_count` | `58` | Items emitted to the pipeline |
-| `retry/count` | `4` | Requests retried |
-| `robotstxt/response_count` | `33` | robots.txt files consulted |
-| `httpcache/hit` / `miss` | `99` / `6` | Cache effectiveness |
+| `downloader/exception_count` | `1` | Network-level failures |
+| `item_scraped_count` | `57` | Items emitted to the pipeline |
+| `retry/count` | `1` | Requests retried |
+| `robotstxt/response_count` | `36` | robots.txt files consulted |
+| `httpcache/hit` / `miss` | `4` / `105` | Cache effectiveness |
 
 The count is higher than 46 because the crawl follows robots.txt, PDF links, retries, and redirects.
 
@@ -184,7 +184,7 @@ The count is higher than 46 because the crawl follows robots.txt, PDF links, ret
 
 ## `data/silver/compliance_chunks.parquet`
 
-The product. **1,519 rows × 7 columns**, ~1.6 MiB, Parquet via Apache Arrow. Every column is provenance-bearing.
+The product. **2,041 rows × 7 columns**, ~2.0 MiB, Parquet via Apache Arrow. Every column is provenance-bearing.
 
 | # | Column | Type | Null? | Example | Notes |
 |---|---|---|---|---|---|
@@ -196,7 +196,7 @@ The product. **1,519 rows × 7 columns**, ~1.6 MiB, Parquet via Apache Arrow. Ev
 | 6 | `token_est` | float | no | `510.72` | `len(text.split()) * 1.33` |
 | 7 | `sha256` | string | no | `4ebc14c5459f…` | Hash of the **extracted document text**; all chunks of a doc share it |
 
-**Distribution (current run):** `kind` = 1,236 pdf / 283 html. 54 unique `sha256` (documents). 54 unique `framework_id`. 31 unique stems.
+**Distribution (current run):** `kind` = 1,292 pdf / 749 html. 54 unique `sha256` (documents). 54 unique `framework_id`. 33 unique stems.
 
 **Chunk sizing:** 512-token window with 50-token overlap, approximated as 384 words with 38-word overlap, minimum 50 words per chunk. Median chunk = 384 words ≈ 510.7 estimated tokens.
 
@@ -211,7 +211,7 @@ The product. **1,519 rows × 7 columns**, ~1.6 MiB, Parquet via Apache Arrow. Ev
 ```json
 {
   "run_id": "data/bronze/latest",
-  "chunks": 1519,
+  "chunks": 2041,
   "docs": 54
 }
 ```
@@ -223,10 +223,11 @@ The product. **1,519 rows × 7 columns**, ~1.6 MiB, Parquet via Apache Arrow. Ev
 ## `data/silver/balanced_slice.parquet`
 
 A capped companion to `compliance_chunks.parquet` with the **same 7-column schema**. No
-framework contributes more than 30 chunks (seed 0), which pulls the three largest
-frameworks (`CJIS-6.1`, `IRS-1075`, `SOX` — most of the full corpus) down to about a fifth
-of it. Built deterministically by `scripts/build_balanced_slice.py`; the full corpus is
-left untouched. Use it whenever a blended metric must not be an implicit metric over CJIS.
+framework contributes more than 30 chunks (seed 0), so the three largest — `CJIS-6.1`,
+`IRS-1075`, `SOX`, together ~45% of the full corpus — are pulled down to a small, bounded
+share and no framework dominates the slice. Built deterministically by
+`scripts/build_balanced_slice.py`; the full corpus is left untouched. Use it whenever a
+blended metric must not be an implicit metric over CJIS.
 
 `data/silver/balanced_slice.json` records the cap, seed, and resulting counts.
 
@@ -240,7 +241,7 @@ nothing is dropped for them (dedup/short/WAF filtering happens before this).
 ```json
 {"run_id": "…", "section_aware": false, "docs": 54, "flagged": 12,
  "entries": [{"framework_id": "CJIS-6.1", "kind": "pdf", "sha256": "…",
-              "chars": 812345, "chunks": 466, "flags": ["table_heavy"]}]}
+              "chars": 812345, "chunks": 464, "flags": ["table_heavy"]}]}
 ```
 
 | Flag | Meaning |
@@ -276,7 +277,7 @@ Every chunk can be traced, end to end:
 ```
 compliance_chunks.parquet row
   └─ source:  data/bronze/latest/raw/SOX_pdf1.pdf
-       └─ (resolve latest symlink) data/bronze/2026-09-01_1903/raw/SOX_pdf1.pdf
+       └─ (resolve latest symlink) data/bronze/2026-10-09/raw/SOX_pdf1.pdf
             └─ manifest.jsonl row  → id: SOX_pdf1, sha256_raw, bytes, fetched_at
                  └─ url: https://www.sec.gov/news/studies/soxoffbalancerpt.pdf
                       └─ sources.json  → {"id": "SOX", ...}
@@ -295,4 +296,4 @@ These hold for every release and are enforced (or measured) in code:
 - ✅ `sha256` groups chunks by source document (no duplicate documents).
 - ✅ Every `source` path resolves to a file that existed at build time.
 - ⚠️ `token_est` is an approximation, not a tokenizer count.
-- ⚠️ 7 of 38 public frameworks currently yield 0 chunks (documented in [`FAQ.md`](FAQ.md)).
+- ⚠️ 5 of 38 public frameworks currently yield 0 chunks (documented in [`FAQ.md`](FAQ.md)).

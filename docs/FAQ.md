@@ -16,7 +16,7 @@ The questions people actually ask, answered plainly — including the uncomforta
 
 ### What is this project, in one paragraph?
 
-A pipeline that fetches 38 public regulatory and compliance frameworks, stores the raw documents untouched, and derives a clean, chunked, provenance-tagged Parquet file (~1,519 rows) that's ready to drop into a RAG system, a research notebook, or a dataset. It re-runs monthly and publishes to GitHub Releases and Hugging Face.
+A pipeline that fetches 38 public regulatory and compliance frameworks, stores the raw documents untouched, and derives a clean, chunked, provenance-tagged Parquet file (~2,041 rows) that's ready to drop into a RAG system, a research notebook, or a dataset. It re-runs monthly and publishes to GitHub Releases and Hugging Face.
 
 ### Who is it for?
 
@@ -30,7 +30,7 @@ A pipeline that fetches 38 public regulatory and compliance frameworks, stores t
 
 ### How often is it updated?
 
-Monthly. A scheduled GitHub Action runs on the 1st of each month, and each run gets a `run_id` (e.g. `2026-09-01_1903`). Bronze keeps every run side-by-side, so nothing is overwritten and you can always see what changed.
+Monthly. A scheduled GitHub Action runs on the 1st of each month, and each run gets a `run_id` (e.g. `2026-10-09`). Bronze keeps every run side-by-side, so nothing is overwritten and you can always see what changed.
 
 ---
 
@@ -38,20 +38,19 @@ Monthly. A scheduled GitHub Action runs on the 1st of each month, and each run g
 
 ### Why are some frameworks empty?
 
-Seven of the 38 public frameworks currently produce **zero chunks**. None of them are empty by accident:
+Five of the 38 public frameworks currently produce **zero chunks**. None of them are empty by accident:
 
 | Framework | Cause |
 |---|---|
-| `GDPR`, `EU-AI-ACT` | EUR-Lex returns a JavaScript shell (~2 KB) instead of the regulation text |
-| `HIPAA`, `HHS-PART2`, `CMMC` | The server returned HTTP 403 (Akamai WAF) |
-| `IL-AIVIA` | The request timed out |
+| `NYDFS-500`, `ECOA-REG-B`, `NAIC-AI` | The server returned a non-200 response (blocked / WAF) |
+| `SG-MODEL-AI` | Landed a WAF challenge page, filtered at the Silver stage |
 | `BR-LGPD` | The "PDF" URL actually serves an HTML wrapper page |
 
-Two of these even land raw bytes in Bronze and then extract to noise (a WAF challenge, or navigation chrome), which the Silver stage filters out. The remediation notes are in [`DATA_PIPELINE.md`](DATA_PIPELINE.md#troubleshooting).
+Two of these land raw bytes in Bronze and then extract to noise — `SG-MODEL-AI` (a WAF challenge) and `BR-LGPD` (navigation chrome) — which the Silver stage filters out. The remediation notes are in [`DATA_PIPELINE.md`](DATA_PIPELINE.md#troubleshooting).
 
 ### Does the corpus hide these gaps?
 
-No — the opposite. Every source ends in exactly one of `ok`, `skipped_public_only`, or `error` in the manifest, and the EDA notebook computes expected-vs-present frameworks so the missing set is visible and trackable. **Gaps are treated as data.** The measure of progress on this project is that the missing set gets smaller.
+No — the opposite. Every source ends in exactly one of `ok`, `skipped_public_only`, or `error` in the manifest, and `verify-sources` reports per-source acquisition health so the missing set is visible and trackable. **Gaps are treated as data** — and a weekly **gap watch** re-probes them and opens an issue when one starts serving text. The measure of progress on this project is that the missing set gets smaller.
 
 ### Why not just scrape the paywalled standards anyway?
 
@@ -71,7 +70,7 @@ They appear in domain lists (that's an accurate statement of the regulatory land
 
 ### Can I trust the extracted text?
 
-The extraction is good but not infallible, and PDFs are the riskier case (multi-column layouts, tables, and page furniture all exist in this corpus). That's exactly why **every chunk carries its `source` path and the source document's `sha256`** — you can always go back to the raw bytes and check. If a passage matters, verify it. The [provenance recipe](COOKBOOK.md#6--provenance-walk-a-chunk-back-to-its-source) walks a chunk to its URL.
+The extraction is good but not infallible, and PDFs are the riskier case (multi-column layouts, tables, and page furniture all exist in this corpus). That's exactly why **every chunk carries its `source` path and the source document's `sha256`** — you can always go back to the raw bytes and check — and why every run writes a `quality_report.json` flagging table-heavy or garbled extractions. If a passage matters, verify it. The [provenance recipe](COOKBOOK.md#6--provenance-walk-a-chunk-back-to-its-source) walks a chunk to its URL.
 
 ### How do I cite a chunk?
 
@@ -117,7 +116,7 @@ Because it removes a heavy dependency and lets the whole thing run in Colab with
 
 ### Why doesn't the distribution look even across frameworks?
 
-Because the source documents aren't even. `CJIS-6.1`, `IRS-1075`, and `SOX` are enormous and together are ~55% of all chunks. If you sample or train naively, those three will dominate — the [cookbook](COOKBOOK.md#8--sample-fairly-why-you-should-care-about-the-top-3) has a balancing recipe.
+Because the source documents aren't even. `CJIS-6.1`, `IRS-1075`, and `SOX` are enormous and together are ~45% of all chunks. If you sample or train naively, those three will dominate — the [cookbook](COOKBOOK.md#8--sample-fairly-why-you-should-care-about-the-top-3) has a balancing recipe, and a capped `balanced_slice.parquet` ships with each release.
 
 ### Are there embeddings / a vector index?
 
@@ -144,10 +143,10 @@ Treat it as a bug. Docs are part of the product here; if a figure in the docs do
 
 Roughly, in order of value:
 
-1. **Recover the gaps** — replace or mirror the WAF-blocked, JS-shell, and wrapper sources so `GDPR`, `EU-AI-ACT`, `HIPAA`, `HHS-PART2`, `CMMC`, `IL-AIVIA`, and `BR-LGPD` yield real chunks.
+1. **Recover the open gaps** — mirrors are configured where a different authoritative URL fixes a block; the set the weekly gap watch currently tracks is `BR-LGPD`, `NYDFS-500`, `ECOA-REG-B`, `NAIC-AI`, `SG-MODEL-AI`.
 2. **Gold stage** — model-free, deterministic artifacts built from Silver (crosswalks, framework index, exact token counts); embeddings stay a consumer recipe, not a stage.
 3. **Exact token counts** — swap `token_est` for a real tokenizer where precision matters.
-4. **Automated drift detection** — diff `sha256_raw` across releases to flag documents that changed.
+4. **Drift detection** — shipped: `detect-drift` diffs runs by extracted-text hash and drives the release changelog.
 
 ### How do I report a problem or contribute?
 

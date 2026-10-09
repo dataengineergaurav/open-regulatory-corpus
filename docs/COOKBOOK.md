@@ -28,7 +28,7 @@ else:
 df["stem"] = df.framework_id.str.split("_pdf").str[0]
 print(f"{len(df)} chunks · {df.framework_id.nunique()} framework_ids · "
       f"{df.stem.nunique()} frameworks · {df.sha256.nunique()} docs")
-# 1519 chunks · 54 framework_ids · 31 frameworks · 54 docs
+# 2041 chunks · 54 framework_ids · 33 frameworks · 54 docs
 ```
 
 ---
@@ -39,7 +39,7 @@ The fastest path to a corpus slice.
 
 ```python
 # One framework, primary document only
-fda = df[df.framework_id == "FDA-AI-MD"]                    # 80 chunks
+fda = df[df.framework_id == "FDA-AI-MD"]                    # 85 chunks
 
 # All documents for a framework (primary + secondary PDFs), via stem
 sox = df[df.stem == "SOX"]                                  # 226 chunks
@@ -60,10 +60,10 @@ DOMAINS = {
 def domain_slice(name):
     return df[df.stem.isin(DOMAINS[name])]
 
-print(domain_slice("Privacy & Data").shape)   # 219 chunks
+print(domain_slice("Privacy & Data").shape)   # (382, 8)
 ```
 
-> Remember: `EU-AI-ACT`, `GDPR`, `BR-LGPD`, `CMMC`, `HIPAA`, `HHS-PART2`, `IL-AIVIA` are in these lists but currently yield **0 chunks**. Filtering is honest — you get what actually landed, nothing fabricated. See [`FAQ.md`](FAQ.md#why-are-some-frameworks-empty).
+> Remember: `NYDFS-500`, `ECOA-REG-B`, `NAIC-AI`, `SG-MODEL-AI`, `BR-LGPD` are in these lists but currently yield **0 chunks**. Filtering is honest — you get what actually landed, nothing fabricated. See [`FAQ.md`](FAQ.md#why-are-some-frameworks-empty).
 
 ---
 
@@ -140,11 +140,11 @@ print("only SOX:", sorted(b - a)[:10])
 ## Domain sizes (current run)
 
 ```
-Cybersecurity          734 chunks   ← CJIS-6.1 dominates
-Financial              276
-Privacy & Data         219
-Health/Access/Trade    206
-AI Governance           84
+Cybersecurity          804 chunks   ← CJIS-6.1 dominates
+Privacy & Data         382
+Health/Access/Trade    368
+Financial              255
+AI Governance          232
 ```
 
 ---
@@ -199,26 +199,26 @@ print(provenance(df[df.chunk_id == "SOX_pdf1-113"].iloc[0]))
 
 ---
 
-## 7 — Measure the gaps (track WAF recovery)
+## 7 — Measure the gaps (track recovery)
 
 The gaps are data. Compute them so you can see a framework return release over release.
 
 ```python
 expected = {f for members in DOMAINS.values() for f in members}          # 38
-present  = set(df.stem.unique())                                         # 31
+present  = set(df.stem.unique())                                         # 33
 missing  = sorted(expected - present)
 print(f"expected {len(expected)}, present {len(present)}, missing {len(missing)}")
 print(missing)
-# ['BR-LGPD','CMMC','EU-AI-ACT','GDPR','HIPAA','HHS-PART2','IL-AIVIA']
+# ['BR-LGPD','ECOA-REG-B','NAIC-AI','NYDFS-500','SG-MODEL-AI']
 ```
 
-Run this against each new month's parquet and log `missing`. A shrinking set is the definition of progress on this project.
+Run this against each new month's parquet and log `missing`. A shrinking set is the definition of progress on this project. `pixi run verify-sources` and the weekly gap watch do this for you.
 
 ---
 
 ## 8 — Sample fairly (why you should care about the top 3)
 
-The distribution is extremely skewed: `CJIS-6.1`, `IRS-1075`, and `SOX` together are **~55% of all chunks**. If you train or evaluate on the raw corpus, those three frameworks will dominate.
+The distribution is extremely skewed: `CJIS-6.1`, `IRS-1075`, and `SOX` together are **~45% of all chunks**. If you train or evaluate on the raw corpus, those three frameworks will dominate.
 
 ```python
 # Naive: skewed
@@ -231,7 +231,7 @@ balanced = (df.groupby("stem", group_keys=False)
 print(f"{len(balanced)} chunks, max {balanced.stem.value_counts().max()} per framework")
 ```
 
-**A balanced slice ships with the data.** `data/silver/balanced_slice.parquet` is this recipe already applied (cap 30, seed 0): 468 chunks, ≤30 per framework, so the big three fall from most of the corpus to about a fifth of it. Build it yourself with `python scripts/build_balanced_slice.py --cap 30`.
+**A balanced slice ships with the data.** `data/silver/balanced_slice.parquet` is this recipe already applied (cap 30, seed 0): 595 chunks, ≤30 per framework, so the big three fall from ~45% of the corpus to ~15% of the slice. Build it yourself with `python scripts/build_balanced_slice.py --cap 30`.
 
 For retrieval evaluation, always report per-framework metrics, not a single blended number — a corpus-wide average is really an average over CJIS.
 

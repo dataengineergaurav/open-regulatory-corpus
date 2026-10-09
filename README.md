@@ -14,7 +14,7 @@ Drop them into a RAG pipeline, a spreadsheet, or a research notebook — no craw
 
 ## Why this exists
 
-Compliance text is public, but it is not *usable*. It hides in PDFs behind viewer wrappers, in 200-page CFR dumps, behind WAF-protected portals, and in HTML where the real content is 4% of the page. Anyone building an AI governance assistant, a policy gap analysis, or a fine-tuning set spends weeks re-scraping the same 38 documents and re-solving the same extraction problems.
+Compliance text is public, but it is not *usable*. It hides in PDFs behind viewer wrappers, in 200-page CFR dumps, behind WAF-protected portals, and in HTML where the real content is 4% of the page. Anyone building an AI governance assistant, a policy gap analysis, or a fine-tuning set spends weeks re-scraping the same 38 frameworks and re-solving the same extraction problems.
 
 This project does that once, in the open, and keeps doing it. It is deliberately **public-only**: if a framework is paywalled (most ISO standards, SOC 2, PCI-DSS), it is recorded as skipped rather than pirated. Every chunk carries its `source` path and a `sha256`, so a downstream answer can always point back to the exact document it came from.
 
@@ -30,15 +30,15 @@ Three ways in, from zero-effort to fully reproducible.
 ```python
 from datasets import load_dataset
 ds = load_dataset("GauravGurjar/open-regulatory-corpus")["train"]
-fda = ds.filter(lambda x: x["framework_id"] == "FDA-AI-MD")   # 80 chunks
+fda = ds.filter(lambda x: x["framework_id"] == "FDA-AI-MD")   # 85 chunks
 ```
 
 **2. Download a release (no account, no crawler):**
 ```bash
-# Silver only — the cleaned chunks (~1.6 MiB)
+# Silver only — the cleaned chunks (~2.0 MiB)
 curl -L -O https://github.com/dataengineergaurav/open-regulatory-corpus/releases/latest/download/open-regulatory-silver-*.parquet
 
-# Or the full Bronze landing zone (~43 MB of raw PDFs + HTML + headers)
+# Or the full Bronze landing zone (~46 MB of raw PDFs + HTML + headers)
 curl -L -O https://github.com/dataengineergaurav/open-regulatory-corpus/releases/latest/download/open-regulatory-bronze-*.tar.gz
 ```
 Every release ships a `SHA256SUMS` file alongside the artifacts.
@@ -49,7 +49,7 @@ pixi install
 RUN_ID=2026-09-01 pixi run pipeline
 # crawl → verify-bronze → build-silver → verify-silver
 ```
-Artifacts land in `data/bronze/<run_id>/raw/` (58 files) and `data/silver/compliance_chunks.parquet`.
+Artifacts land in `data/bronze/<run_id>/raw/` (57 files) and `data/silver/compliance_chunks.parquet`.
 
 ---
 
@@ -59,11 +59,11 @@ Artifacts land in `data/bronze/<run_id>/raw/` (58 files) and `data/silver/compli
 
 | Domain | Frameworks |
 |---|---|
-| **AI Governance** (9) | NIST-AI-RMF, NIST-AI-600-1, EU-AI-ACT\*, OMB-M25-21, OMB-M25-22, OWASP-LLM-2026, CO-AI, TX-TRAIGA, SG-MODEL-AI |
-| **Privacy & Data** (8) | GDPR\*, CCPA-CPRA, FERPA, COPPA, UK-DP-AI, BR-LGPD\*, AU-PRIVACY-AI, DOJ-DSP |
-| **Cybersecurity** (7) | NIST-CSF2, NIST-800-53, NIST-800-171, FEDRAMP, CMMC\*, CJIS-6.1, IRS-1075 |
-| **Financial** (6) | SOX, GLBA, NYDFS-500, FRB-MRM-2026, ECOA-REG-B, NAIC-AI |
-| **Health / Access / Trade** (8) | HIPAA\*, HHS-PART2\*, SECTION-508, ONC-HTI1, FDA-AI-MD, NYC-LL144, IL-AIVIA\*, EAR |
+| **AI Governance** (9) | NIST-AI-RMF, NIST-AI-600-1, EU-AI-ACT, OMB-M25-21, OMB-M25-22, OWASP-LLM-2026, CO-AI, TX-TRAIGA, SG-MODEL-AI\* |
+| **Privacy & Data** (8) | GDPR, CCPA-CPRA, FERPA, COPPA, UK-DP-AI, BR-LGPD\*, AU-PRIVACY-AI, DOJ-DSP |
+| **Cybersecurity** (7) | NIST-CSF2, NIST-800-53, NIST-800-171, FEDRAMP, CMMC, CJIS-6.1, IRS-1075 |
+| **Financial** (6) | SOX, GLBA, NYDFS-500\*, FRB-MRM-2026, ECOA-REG-B\*, NAIC-AI\* |
+| **Health / Access / Trade** (8) | HIPAA, HHS-PART2, SECTION-508, ONC-HTI1, FDA-AI-MD, NYC-LL144, IL-AIVIA, EAR |
 
 `*` = **tracked but 0 chunks in the current Silver.** These are not missing by accident — see [the honest gaps](#the-honest-gaps) below.
 
@@ -73,16 +73,15 @@ Artifacts land in `data/bronze/<run_id>/raw/` (58 files) and `data/silver/compli
 
 ## The honest gaps
 
-Data work is mostly about what *didn't* land, and pretending otherwise makes a corpus untrustworthy. Seven of the 38 public frameworks currently produce **zero chunks**, and each has a documented cause:
+Data work is mostly about what *didn't* land, and pretending otherwise makes a corpus untrustworthy. Five of the 38 public frameworks currently produce **zero chunks**, and each has a documented cause:
 
 | Framework | Why it's empty |
 |---|---|
-| `GDPR`, `EU-AI-ACT` | EUR-Lex serves a JavaScript shell (~2 KB) instead of the regulation text |
-| `HIPAA`, `HHS-PART2`, `CMMC` | WAF returned HTTP 403 (Akamai) |
-| `IL-AIVIA` | Request timed out |
+| `NYDFS-500`, `ECOA-REG-B`, `NAIC-AI` | The server returned a non-200 response (blocked/WAF) |
+| `SG-MODEL-AI` | Landed a WAF challenge page, filtered at the Silver stage |
 | `BR-LGPD` | The "PDF" URL actually returns an HTML wrapper page |
 
-Two more land as raw bytes but extract to noise: `HIPAA`-class WAF challenge pages (`AwsWaf`, "JavaScript is disabled") are filtered in the Silver stage, and the `BR-LGPD` wrapper is dropped as navigation chrome. The full remediation playbook lives in [`docs/DATA_PIPELINE.md`](docs/DATA_PIPELINE.md#troubleshooting). **Gaps are tracked as data, not hidden** — recovering one is a measurable win release-over-release.
+`SG-MODEL-AI` and `BR-LGPD` land as raw bytes but extract to noise — a WAF challenge and navigation chrome respectively — and are dropped at the Silver stage. The full remediation playbook lives in [`docs/DATA_PIPELINE.md`](docs/DATA_PIPELINE.md#troubleshooting). **Gaps are tracked as data, not hidden** — the missing set is watched weekly and recovering one is a measurable win release-over-release.
 
 ---
 
@@ -97,25 +96,25 @@ A classic **medallion** architecture: raw bytes first, trust and structure later
         ▼                                      │  magic-byte extension detection
   ┌─────────────┐                          ┌────┴─────┐
   │   SOURCES   │────── crawl ────────────▶│  BRONZE  │  verbatim bytes + manifest
-  └─────────────┘                          └────┬─────┘  58 files · 43 MB
+  └─────────────┘                          └────┬─────┘  57 files · 46 MB
         │                                       │
         │                                       │  trafilatura (HTML) + PyMuPDF (PDF)
         │                                       │  dedup by sha256 · chunk 512 / 50
         │                                       ▼
         │                                  ┌───────────┐
         │                                  │  SILVER   │  compliance_chunks.parquet
-        │                                  └─────┬─────┘  1,519 chunks · 54 docs
+        │                                  └─────┬─────┘  2,041 chunks · 54 docs
         │                                        │
         ▼                                        ▼
    monthly GitHub Release  ◀────────── publish ──────────▶  Hugging Face dataset
-   (bronze tar + silver parquet + SHA256SUMS)
+   (bronze tar + silver parquet + balanced slice + changelog + SHA256SUMS)
 ```
 
 **Bronze — full raw landing (`data/bronze/<run_id>/`)**
 Verbatim bytes, never mutated. Files are named by *magic bytes*, not by URL guessing (a `.pdf` URL that returns HTML is stored as `.html` — the extension never lies). A `manifest.jsonl` records what happened to every source; `headers/<ID>.json` preserves the HTTP response; `scrapy_stats.json` captures crawl telemetry. `latest` is a symlink to the newest run.
 
 **Silver — cleaned + chunked (`data/silver/compliance_chunks.parquet`)**
-HTML is extracted with `trafilatura` (with a tag-strip fallback for stubborn pages); PDFs with PyMuPDF, page-tagged so you never lose the page reference. Documents are deduplicated by content hash, split into 512-token windows with 50 tokens of overlap (≈384 words per chunk), then written to Parquet via `datasets`.
+HTML is extracted with `trafilatura` (with a tag-strip fallback for stubborn pages); PDFs with PyMuPDF, page-tagged so you never lose the page reference. Documents are deduplicated by content hash, split into 512-token windows with 50 tokens of overlap (≈384 words per chunk), then written to Parquet via `datasets`. A per-run document index (`index/<run_id>.json`) records each document's extracted-text hash for drift detection.
 
 ---
 
@@ -150,7 +149,7 @@ Measured from `data/silver/compliance_chunks.parquet` (run `2026-10-09`):
 - Bronze: **57** raw files (**25** PDF · **32** HTML, **46** MB); manifest **57** ok · **8** skipped · **3** error
 <!-- /sync:stats -->
 
-> The top three documents alone are ~55% of all chunks. That's a real characteristic of regulatory text (CJIS and SOX are enormous), and something to weight for when sampling.
+> The top three documents are ~45% of all chunks. That's a real characteristic of regulatory text (CJIS and IRS-1075 are enormous), and something to weight for when sampling. A capped companion slice ships for exactly this reason.
 
 ---
 
@@ -196,7 +195,7 @@ open-regulatory-corpus/
 │   ├── verify_silver.py      asserts Silver row count + schema
 │   ├── verify_sources.py     reports per-source acquisition health (gaps)
 │   ├── probe_gaps.py         re-probes empty frameworks for usable text (gap watch)
-│   ├── detect_drift.py       diffs two Bronze runs by raw hash (drift report)
+│   ├── detect_drift.py       diffs two runs by extracted-text hash (drift report)
 │   ├── build_changelog.py    renders a changelog (md + json) from the drift
 │   ├── publish_hf.py         uploads Silver + card to Hugging Face
 │   └── sync_published.py     keeps README / HF card / GitHub About in sync
@@ -204,11 +203,11 @@ open-regulatory-corpus/
 │   ├── sources.json          the single source of truth: 46 sources, 38 public
 │   ├── sources.schema.json   JSON Schema for the registry (validated in CI)
 │   ├── bronze/               raw landing zone (raw/ + headers/ are Release assets)
-│   └── silver/               compliance_chunks.parquet + silver_stats.json
+│   └── silver/               compliance_chunks.parquet + balanced slice + index/ + quality report
 ├── notebooks/                01_search · 02_silver_eda · 03_silver_analysis
 ├── docs/                     you are (one level) here
 ├── .commandcode/skills/      agent skills — compliance-officer (audit · research · proposals)
-├── .github/workflows/        ci.yml + monthly-release.yml
+├── .github/workflows/        ci.yml + monthly-release.yml + gap-watch.yml
 └── pixi.toml                 environment + named tasks (crawl, build-silver, pipeline…)
 ```
 
@@ -216,9 +215,9 @@ open-regulatory-corpus/
 
 ## How it stays fresh
 
-A scheduled GitHub Action runs on the **1st of every month**: it crawls, verifies Bronze, builds and verifies Silver, packages the artifacts, cuts a GitHub Release with a `SHA256SUMS`, and publishes to Hugging Face. Every run is identified by a `run_id` (e.g. `2026-09-01_1903`), and Bronze keeps every run side-by-side, so history is never overwritten.
+A scheduled GitHub Action runs on the **1st of every month**: it crawls, verifies Bronze, builds and verifies Silver, packages the artifacts, cuts a GitHub Release with a `SHA256SUMS`, and publishes to Hugging Face. Every run is identified by a `run_id` (e.g. `2026-10-09`), and Bronze keeps every run side-by-side, so history is never overwritten.
 
-Each release also ships a **changelog** (`changelog-<run_id>.md`) listing the documents added, changed, or removed since the previous run — detected by diffing Bronze hashes, so a framework that was revised in place shows up even without a version bump. See [Releases](https://github.com/dataengineergaurav/open-regulatory-corpus/releases).
+Each release also ships a **changelog** (`changelog-<run_id>.md`) listing the documents added, changed, or removed since the previous run — detected by diffing **extracted-text** hashes, so a framework that was revised in place shows up even without a version bump, while re-rendered page chrome does not. See [Releases](https://github.com/dataengineergaurav/open-regulatory-corpus/releases).
 
 A weekly **gap watch** re-probes the empty frameworks and opens an issue if one starts serving text, so recovery is noticed rather than missed.
 
