@@ -44,6 +44,9 @@ jobs:
       - name: Verify Silver
         run: pixi run python scripts/verify_silver.py
 
+      - name: Detect drift vs previous run
+        run: pixi run detect-drift | tee -a "$GITHUB_STEP_SUMMARY"
+
       - name: Package datasets
         run: |
           RUN_ID=${RUN_ID:-$(basename $(readlink data/bronze/latest))}

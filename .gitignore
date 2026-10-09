@@ -20,3 +20,7 @@ data/bronze/*/headers/
 Thumbs.db
 *.log
 scrapy.log
+
+# command code: skills are committed; per-machine settings/taste are not
+.commandcode/settings.json
+.commandcode/taste/

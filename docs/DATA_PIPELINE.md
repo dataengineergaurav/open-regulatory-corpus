@@ -65,6 +65,7 @@ pixi run verify-silver
 | `build-silver` | `python scripts/build_silver.py` | Extract, dedup, chunk → Parquet |
 | `verify-silver` | `python scripts/verify_silver.py` | Assert Silver exists with a plausible row count |
 | `verify-sources` | `python scripts/verify_sources.py` | Report per-source acquisition health (healthy / empty / error) |
+| `detect-drift` | `python scripts/detect_drift.py` | Diff the newest Bronze run against the previous one by `sha256_raw` |
 | `verify` | all three verifiers | `verify-bronze && verify-silver && verify-sources` |
 | `pipeline` | all four, chained | End-to-end |
 
