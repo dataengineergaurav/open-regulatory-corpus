@@ -71,6 +71,21 @@ The verifiers are also wired into CI (`.github/workflows/ci.yml`) and the monthl
 
 ---
 
+## Publishing & keeping surfaces in sync
+
+The same numbers appear in three published places — `README.md`, the Hugging Face dataset card, and the GitHub "About" box. Rather than let them drift by hand, `scripts/sync_published.py` derives them from the artifacts and rewrites them:
+
+```bash
+pixi run check-docs        # CI: exit 1 if README/HF card numbers are stale
+pixi run sync-published    # rewrite regions + update GitHub About + push HF card
+```
+
+- Only text between `<!-- sync:* -->` markers is generated; surrounding prose stays hand-written.
+- `sync-published` is **idempotent** — it writes or commits only when something changed — and **degrades gracefully**: a GitHub permission failure warns but never blocks the release.
+- CI runs `check-docs` on every push/PR; the monthly release runs `sync-published` after publishing (needs `secrets.HF_TOKEN`; GitHub About also needs a token with repo-metadata scope, e.g. `secrets.REPO_ADMIN_TOKEN`).
+
+---
+
 ## Sources (38 in, 8 skipped)
 
 **In (38):** NIST-AI-RMF, NIST-AI-600-1, NIST-CSF2.pdf, NIST-800-53, FEDRAMP, EU-AI-ACT, GDPR, HIPAA (WAF), GLBA, FERPA, CCPA-CPRA, CO-AI, TX-TRAIGA, OMB-M25-21.pdf, OMB-M25-22.pdf, OWASP-LLM-2026, SOX, NIST-800-171, CMMC (WAF), CJIS-6.1.pdf, IRS-1075, SECTION-508, HHS-PART2 (WAF), ONC-HTI1, FDA-AI-MD, FRB-MRM-2026, NYDFS-500, ECOA-REG-B, NAIC-AI, COPPA, NYC-LL144, IL-AIVIA (WAF), UK-DP-AI, BR-LGPD.pdf (HTML wrapper), AU-PRIVACY-AI, SG-MODEL-AI, DOJ-DSP, EAR — plus 22 secondary PDFs.

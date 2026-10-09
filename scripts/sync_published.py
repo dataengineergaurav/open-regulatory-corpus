@@ -1,0 +1,222 @@
+#!/usr/bin/env python3
+"""Sync every published surface of the corpus from one source of truth.
+
+The volatile corpus numbers (chunk/doc counts, sizes, top documents) are derived
+from the artifacts in data/ and written into the marker regions of README.md and
+HF_DATASET_CARD.md, then pushed to the GitHub "About" section and the Hugging
+Face dataset card. Idempotent: it only writes or commits when something changed.
+
+Usage:
+  pixi run sync-published            # update files + GitHub About + HF card
+  pixi run sync-published --check    # verify only, exit 1 on drift (CI)
+  pixi run sync-published --no-about # skip the GitHub About section
+  pixi run sync-published --no-hf    # skip the Hugging Face card upload
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+GH_REPO = os.environ.get("GH_REPO", "dataengineergaurav/open-regulatory-corpus")
+HF_REPO = os.environ.get("HF_REPO_ID", "GauravGurjar/open-regulatory-corpus")
+HF_URL = f"https://huggingface.co/datasets/{HF_REPO}"
+
+TOPICS = [
+    "ai-governance", "compliance", "dataset", "gdpr", "nist", "rag", "bronze-silver",
+    "ai-regulation", "corpus", "cybersecurity", "finance", "healthcare", "legal",
+    "open-data", "parquet", "privacy", "regulatory", "text-retrieval",
+]
+
+
+def _read(rel: str) -> str:
+    return (ROOT / rel).read_text()
+
+
+def compute_stats() -> dict:
+    """Everything published is derived here — the single source of truth."""
+    import pyarrow.parquet as pq
+
+    manifest = [json.loads(line) for line in _read("data/bronze/latest/manifest.jsonl").splitlines() if line.strip()]
+    ok = [r for r in manifest if r.get("status") == "ok"]
+    pdfs = sum(1 for r in ok if "pdf" in (r.get("content_type") or "").lower())
+    raw_bytes = sum(r.get("bytes", 0) for r in ok)
+
+    sources = json.loads(_read("data/sources.json"))
+
+    df = pq.read_table(str(ROOT / "data/silver/compliance_chunks.parquet")).to_pandas()
+    stems = df.framework_id.str.split("_pdf").str[0]
+    kinds = df.kind.value_counts().to_dict()
+    top = stems.value_counts().head(4)
+
+    return {
+        "sources_total": len(sources),
+        "sources_public": sum(1 for s in sources if s["public"]),
+        "sources_skipped": sum(1 for s in sources if not s["public"]),
+        "manifest_total": len(manifest),
+        "ok": len(ok),
+        "skipped": sum(1 for r in manifest if r.get("status") == "skipped_public_only"),
+        "error": sum(1 for r in manifest if r.get("status") == "error"),
+        "raw_pdfs": pdfs,
+        "raw_htmls": len(ok) - pdfs,
+        "raw_mib": round(raw_bytes / 1024 / 1024),
+        "chunks": len(df),
+        "docs": int(df.sha256.nunique()),
+        "frameworks_present": int(stems.nunique()),
+        "tokens": int(df.token_est.sum()),
+        "chunk_pdf": int(kinds.get("pdf", 0)),
+        "chunk_html": int(kinds.get("html", 0)),
+        "median_words": int(df.text.str.split().str.len().median()),
+        "top": [(str(k), int(v)) for k, v in top.items()],
+        "run_id": os.path.basename(os.path.realpath(ROOT / "data/bronze/latest")),
+    }
+
+
+def render_headline(s: dict) -> str:
+    return (
+        f"{s['sources_public']} public frameworks → {s['ok']} raw documents ({s['raw_mib']} MB) → "
+        f"**{s['chunks']:,}** citation-ready chunks across **{s['docs']}** documents"
+    )
+
+
+def render_stats(s: dict) -> str:
+    top = ", ".join(f"**{k}** ({v})" for k, v in s["top"])
+    return (
+        f"Measured from `data/silver/compliance_chunks.parquet` (run `{s['run_id']}`):\n\n"
+        f"- **{s['chunks']:,}** chunks across **{s['docs']}** documents, spanning "
+        f"**{s['frameworks_present']} of {s['sources_public']}** public frameworks\n"
+        f"- **~{s['tokens']:,}** estimated tokens of compliance text\n"
+        f"- **{s['chunk_pdf']:,}** PDF chunks / **{s['chunk_html']:,}** HTML chunks\n"
+        f"- **{s['median_words']}**-word median chunk length\n"
+        f"- Largest documents: {top}\n"
+        f"- Bronze: **{s['ok']}** raw files (**{s['raw_pdfs']}** PDF · **{s['raw_htmls']}** HTML, "
+        f"**{s['raw_mib']}** MB); manifest **{s['ok']}** ok · **{s['skipped']}** skipped · **{s['error']}** error"
+    )
+
+
+REGIONS = {"headline": render_headline, "stats": render_stats}
+
+
+def sync_regions(rel: str, stats: dict, check: bool) -> bool:
+    text = _read(rel)
+    drifted = False
+    for name, render in REGIONS.items():
+        pattern = re.compile(
+            rf"<!-- sync:{name} -->\n.*?\n<!-- /sync:{name} -->", re.S
+        )
+        if not pattern.search(text):
+            print(f"  !! {rel}: missing <!-- sync:{name} --> marker")
+            drifted = True
+            continue
+        block = f"<!-- sync:{name} -->\n{render(stats)}\n<!-- /sync:{name} -->"
+        if pattern.search(text).group(0) != block:
+            drifted = True
+            if not check:
+                text = pattern.sub(lambda _: block, text, count=1)
+    if drifted and not check:
+        (ROOT / rel).write_text(text)
+    return drifted
+
+
+def desired_description(s: dict) -> str:
+    return (
+        f"Public-only corpus of AI, privacy, cybersecurity, finance & health regulations — "
+        f"{s['sources_public']} frameworks → {s['chunks']:,} RAG-ready chunks. "
+        f"Bronze → Silver medallion pipeline, monthly releases."
+    )
+
+
+def _gh(args: list[str]) -> subprocess.CompletedProcess:
+    return subprocess.run(["gh", *args], capture_output=True, text=True)
+
+
+def sync_about(s: dict, check: bool) -> bool:
+    probe = _gh(["api", f"repos/{GH_REPO}", "--jq", "{description,homepage}"])
+    if probe.returncode != 0:
+        print(f"  !! gh not usable ({probe.stderr.strip()[:120]}) — skipping About")
+        return False
+    cur = json.loads(probe.stdout)
+    names = json.loads(_gh(["api", f"repos/{GH_REPO}/topics", "--jq", ".names"]).stdout or "[]")
+    drifted = (
+        cur.get("description") != desired_description(s)
+        or cur.get("homepage") != HF_URL
+        or set(names) != set(TOPICS)
+    )
+    if not drifted or check:
+        return drifted
+    r = _gh(["api", "-X", "PATCH", f"repos/{GH_REPO}",
+             "-f", f"description={desired_description(s)}", "-f", f"homepage={HF_URL}"])
+    if r.returncode != 0:
+        print(f"  !! About description/homepage not updated: {r.stderr.strip()[:160]}")
+    topic_args = [a for t in TOPICS for a in ("-f", f"names[]={t}")]
+    r = _gh(["api", "-X", "PUT", f"repos/{GH_REPO}/topics", *topic_args])
+    if r.returncode != 0:
+        print(f"  !! About topics not updated: {r.stderr.strip()[:160]}")
+    return True
+
+
+def sync_hf(check: bool) -> bool:
+    from huggingface_hub import HfApi, hf_hub_download
+
+    local = _read("HF_DATASET_CARD.md")
+    try:
+        remote = Path(hf_hub_download(HF_REPO, "README.md", repo_type="dataset")).read_text()
+    except Exception as exc:  # network/repo absent — treat as needing push
+        remote = None
+        print(f"  (could not read remote card: {type(exc).__name__})")
+    if remote == local:
+        return False
+    if not check:
+        HfApi().upload_file(
+            path_or_fileobj=str(ROOT / "HF_DATASET_CARD.md"),
+            path_in_repo="README.md",
+            repo_id=HF_REPO,
+            repo_type="dataset",
+            commit_message="docs: sync dataset card (automated)",
+        )
+    return True
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description="Sync published surfaces from corpus artifacts.")
+    ap.add_argument("--check", action="store_true", help="verify only; exit 1 on drift")
+    ap.add_argument("--no-about", action="store_true")
+    ap.add_argument("--no-hf", action="store_true")
+    args = ap.parse_args()
+
+    stats = compute_stats()
+    print(f"stats: {stats['chunks']:,} chunks · {stats['docs']} docs · "
+          f"{stats['frameworks_present']}/{stats['sources_public']} frameworks · run {stats['run_id']}")
+
+    drift = False
+    for rel in ("README.md", "HF_DATASET_CARD.md"):
+        d = sync_regions(rel, stats, args.check)
+        print(f"  {rel}: {'DRIFT' if d else 'ok'}")
+        drift |= d
+
+    if not args.no_about:
+        d = sync_about(stats, args.check)
+        print(f"  GitHub About: {'DRIFT' if d else 'ok'}")
+        drift |= d
+    if not args.no_hf:
+        d = sync_hf(args.check)
+        print(f"  Hugging Face card: {'DRIFT' if d else 'ok'}")
+        drift |= d
+
+    if args.check:
+        if drift:
+            print("\nDRIFT DETECTED — run `pixi run sync-published` to fix.")
+            return 1
+        print("\nAll published surfaces in sync.")
+        return 0
+    print("\nSynced." if drift else "\nAlready in sync.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

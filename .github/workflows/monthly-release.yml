@@ -94,8 +94,14 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          echo "Publishing to HF datasets/GauravGurjar/compliance-data"
+          echo "Publishing to HF datasets/GauravGurjar/open-regulatory-corpus"
           pixi run python scripts/publish_hf.py
+
+      - name: Sync published surfaces (README + HF card + GitHub About)
+        env:
+          GH_TOKEN: ${{ secrets.REPO_ADMIN_TOKEN || github.token }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: pixi run sync-published
 
       - name: Upload workflow artifacts (30d retention)
         uses: actions/upload-artifact@v4

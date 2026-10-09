@@ -2,7 +2,11 @@
 
 **A public-only, machine-readable corpus of the rules that govern AI, privacy, cybersecurity, finance, and health care — scraped, cleaned, chunked, and shipped every month.**
 
-38 public frameworks → 58 raw documents (43 MB) → **1,519 citation-ready chunks** you can drop into a RAG pipeline, a spreadsheet, or a research notebook. No crawler required to consume it.
+<!-- sync:headline -->
+38 public frameworks → 58 raw documents (43 MB) → **1,519** citation-ready chunks across **54** documents
+<!-- /sync:headline -->
+
+Drop them into a RAG pipeline, a spreadsheet, or a research notebook — no crawler required to consume it.
 
 [Releases](https://github.com/dataengineergaurav/open-regulatory-corpus/releases) · [Hugging Face](https://huggingface.co/datasets/GauravGurjar/open-regulatory-corpus) · [Documentation](#documentation) · [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/dataengineergaurav/open-regulatory-corpus/blob/main/notebooks/01_search.ipynb)
 
@@ -135,14 +139,16 @@ Full field-by-field reference: [`docs/DATA_DICTIONARY.md`](docs/DATA_DICTIONARY.
 
 ## By the numbers
 
-Measured from the current `data/silver/compliance_chunks.parquet` (run `2026-09-01_1903`):
+<!-- sync:stats -->
+Measured from `data/silver/compliance_chunks.parquet` (run `2026-09-01_1903`):
 
 - **1,519** chunks across **54** documents, spanning **31 of 38** public frameworks
-- **~763,000** estimated tokens of compliance text
-- **81%** of chunks come from PDFs (1,236) vs HTML (283)
-- **384 words** median chunk length — the 512/50 window doing its job
-- **Largest documents:** `CJIS-6.1` (466), `IRS-1075` (228), `SOX` (226), `CCPA-CPRA` (126)
-- **Bronze landing:** 58 files = 27 PDFs + 31 HTML; manifest = 58 `ok` + 8 `skipped` + 4 `error`
+- **~763,236** estimated tokens of compliance text
+- **1,236** PDF chunks / **283** HTML chunks
+- **384**-word median chunk length
+- Largest documents: **CJIS-6.1** (466), **IRS-1075** (228), **SOX** (226), **CCPA-CPRA** (126)
+- Bronze: **58** raw files (**27** PDF · **31** HTML, **43** MB); manifest **58** ok · **8** skipped · **4** error
+<!-- /sync:stats -->
 
 > The top three documents alone are ~55% of all chunks. That's a real characteristic of regulatory text (CJIS and SOX are enormous), and something to weight for when sampling.
 
@@ -175,7 +181,8 @@ open-regulatory-corpus/
 │   ├── build_silver.py       Bronze → cleaned, deduped, chunked Parquet
 │   ├── verify_bronze.py      asserts manifest/raw/header invariants
 │   ├── verify_silver.py      asserts Silver row count + schema
-│   └── publish_hf.py         uploads Silver + card to Hugging Face
+│   ├── publish_hf.py         uploads Silver + card to Hugging Face
+│   └── sync_published.py     keeps README / HF card / GitHub About in sync
 ├── data/
 │   ├── sources.json          the single source of truth: 46 sources, 38 public
 │   ├── bronze/               raw landing zone (raw/ + headers/ are Release assets)
