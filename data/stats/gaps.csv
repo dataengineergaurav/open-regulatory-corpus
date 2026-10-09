@@ -1,0 +1,6 @@
+id,cause
+BR-LGPD,Served a shell / wrapper page (filtered at the Silver stage)
+ECOA-REG-B,The server returned a non-200 response
+NAIC-AI,The server returned a non-200 response
+NYDFS-500,The server returned a non-200 response
+SG-MODEL-AI,Served a shell / wrapper page (filtered at the Silver stage)
