@@ -73,13 +73,16 @@ Artifacts land in `data/bronze/<run_id>/raw/` (57 files) and `data/silver/compli
 
 ## The honest gaps
 
-Data work is mostly about what *didn't* land, and pretending otherwise makes a corpus untrustworthy. Five of the 38 public frameworks currently produce **zero chunks**, and each has a documented cause:
+Data work is mostly about what *didn't* land, and pretending otherwise makes a corpus untrustworthy.
+
+<!-- sync:gaps -->
+**5** of the 38 public frameworks currently produce **zero chunks**:
 
 | Framework | Why it's empty |
 |---|---|
-| `NYDFS-500`, `ECOA-REG-B`, `NAIC-AI` | The server returned a non-200 response (blocked/WAF) |
-| `SG-MODEL-AI` | Landed a WAF challenge page, filtered at the Silver stage |
-| `BR-LGPD` | The "PDF" URL actually returns an HTML wrapper page |
+| `BR-LGPD`, `SG-MODEL-AI` | Served a shell / wrapper page (filtered at the Silver stage) |
+| `ECOA-REG-B`, `NAIC-AI`, `NYDFS-500` | The server returned a non-200 response |
+<!-- /sync:gaps -->
 
 `SG-MODEL-AI` and `BR-LGPD` land as raw bytes but extract to noise — a WAF challenge and navigation chrome respectively — and are dropped at the Silver stage. The full remediation playbook lives in [`docs/DATA_PIPELINE.md`](docs/DATA_PIPELINE.md#troubleshooting). **Gaps are tracked as data, not hidden** — the missing set is watched weekly and recovering one is a measurable win release-over-release.
 

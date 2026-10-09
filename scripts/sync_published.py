@@ -54,6 +54,14 @@ def compute_stats() -> dict:
     kinds = df.kind.value_counts().to_dict()
     top = stems.value_counts().head(4)
 
+    public_ids = [s["id"] for s in sources if s["public"]]
+    status_by_id: dict[str, str] = {}
+    for r in manifest:
+        status_by_id.setdefault(str(r.get("id", "")).split("_pdf")[0], str(r.get("status")))
+    present = {str(x) for x in stems}
+    gaps = [{"id": i, "status": status_by_id.get(i, "missing")}
+            for i in sorted(public_ids) if i not in present]
+
     return {
         "sources_total": len(sources),
         "sources_public": sum(1 for s in sources if s["public"]),
@@ -73,6 +81,7 @@ def compute_stats() -> dict:
         "chunk_html": int(kinds.get("html", 0)),
         "median_words": int(df.text.str.split().str.len().median()),
         "top": [(str(k), int(v)) for k, v in top.items()],
+        "gaps": gaps,
         "run_id": os.path.basename(os.path.realpath(ROOT / "data/bronze/latest")),
     }
 
@@ -99,13 +108,29 @@ def render_stats(s: dict) -> str:
     )
 
 
-REGIONS = {"headline": render_headline, "stats": render_stats}
+def _gap_cause(status: str) -> str:
+    return ("The server returned a non-200 response" if status == "error"
+            else "Served a shell / wrapper page (filtered at the Silver stage)")
 
 
-def sync_regions(rel: str, stats: dict, check: bool) -> bool:
+def render_gaps(s: dict) -> str:
+    groups: dict[str, list[str]] = {}
+    for g in sorted(s["gaps"], key=lambda g: (_gap_cause(g["status"]), g["id"])):
+        groups.setdefault(_gap_cause(g["status"]), []).append(g["id"])
+    rows = "\n".join(f"| {', '.join('`' + i + '`' for i in ids)} | {cause} |"
+                     for cause, ids in groups.items())
+    return (f"**{len(s['gaps'])}** of the {s['sources_public']} public frameworks currently produce "
+            f"**zero chunks**:\n\n| Framework | Why it's empty |\n|---|---|\n{rows}")
+
+
+REGIONS = {"headline": render_headline, "stats": render_stats, "gaps": render_gaps}
+
+
+def sync_regions(rel: str, regions: tuple[str, ...], stats: dict, check: bool) -> bool:
     text = _read(rel)
     drifted = False
-    for name, render in REGIONS.items():
+    for name in regions:
+        render = REGIONS[name]
         pattern = re.compile(
             rf"<!-- sync:{name} -->\n.*?\n<!-- /sync:{name} -->", re.S
         )
@@ -193,9 +218,14 @@ def main() -> int:
     print(f"stats: {stats['chunks']:,} chunks · {stats['docs']} docs · "
           f"{stats['frameworks_present']}/{stats['sources_public']} frameworks · run {stats['run_id']}")
 
+    files = {
+        "README.md": ("headline", "stats", "gaps"),
+        "HF_DATASET_CARD.md": ("headline", "stats", "gaps"),
+        "docs/FAQ.md": ("gaps",),
+    }
     drift = False
-    for rel in ("README.md", "HF_DATASET_CARD.md"):
-        d = sync_regions(rel, stats, args.check)
+    for rel, regions in files.items():
+        d = sync_regions(rel, regions, stats, args.check)
         print(f"  {rel}: {'DRIFT' if d else 'ok'}")
         drift |= d
 
