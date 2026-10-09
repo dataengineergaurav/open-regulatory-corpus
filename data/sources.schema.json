@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Open Regulatory Corpus — source registry",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["id", "url", "public"],
+    "additionalProperties": false,
+    "properties": {
+      "id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"},
+      "url": {"type": "string", "pattern": "^https?://"},
+      "public": {"type": "boolean"},
+      "mirrors": {"type": "array", "items": {"type": "string", "pattern": "^https?://"}}
+    }
+  }
+}

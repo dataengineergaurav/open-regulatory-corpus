@@ -192,6 +192,7 @@ open-regulatory-corpus/
 │   ├── silver_utils.py       chunking + extraction-quality helpers
 │   ├── build_balanced_slice.py  capped per-framework slice (counter the top-3 skew)
 │   ├── verify_bronze.py      asserts manifest/raw/header invariants
+│   ├── validate_sources.py   validates data/sources.json against its schema
 │   ├── verify_silver.py      asserts Silver row count + schema
 │   ├── verify_sources.py     reports per-source acquisition health (gaps)
 │   ├── detect_drift.py       diffs two Bronze runs by raw hash (drift report)
@@ -200,6 +201,7 @@ open-regulatory-corpus/
 │   └── sync_published.py     keeps README / HF card / GitHub About in sync
 ├── data/
 │   ├── sources.json          the single source of truth: 46 sources, 38 public
+│   ├── sources.schema.json   JSON Schema for the registry (validated in CI)
 │   ├── bronze/               raw landing zone (raw/ + headers/ are Release assets)
 │   └── silver/               compliance_chunks.parquet + silver_stats.json
 ├── notebooks/                01_search · 02_silver_eda · 03_silver_analysis
