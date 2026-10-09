@@ -11,6 +11,7 @@ verify-bronze = { cmd = "python scripts/verify_bronze.py", description = "Verify
 build-silver = { cmd = "python scripts/build_silver.py", description = "Build Silver parquet" }
 verify-silver = { cmd = "python scripts/verify_silver.py", description = "Verify Silver" }
 verify-sources = { cmd = "python scripts/verify_sources.py", description = "Report per-source acquisition health (gaps)" }
+detect-drift = { cmd = "python scripts/detect_drift.py", description = "Diff the newest Bronze run against the previous one (drift report)" }
 verify = { cmd = "python scripts/verify_bronze.py && python scripts/verify_silver.py && python scripts/verify_sources.py", description = "Verify Bronze+Silver + per-source acquisition health" }
 check-docs = { cmd = "python scripts/sync_published.py --check --no-about --no-hf", description = "Fail if README/HF card numbers drift from artifacts" }
 sync-published = { cmd = "python scripts/sync_published.py", description = "Sync README, HF card + GitHub About from artifacts" }

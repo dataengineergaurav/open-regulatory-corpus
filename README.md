@@ -192,6 +192,7 @@ open-regulatory-corpus/
 │   ├── verify_bronze.py      asserts manifest/raw/header invariants
 │   ├── verify_silver.py      asserts Silver row count + schema
 │   ├── verify_sources.py     reports per-source acquisition health (gaps)
+│   ├── detect_drift.py       diffs two Bronze runs by raw hash (drift report)
 │   ├── publish_hf.py         uploads Silver + card to Hugging Face
 │   └── sync_published.py     keeps README / HF card / GitHub About in sync
 ├── data/
