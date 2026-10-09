@@ -15,6 +15,11 @@ data quality and developer experience.
 The Now / Next / Later grouping maps cleanly onto a GitHub Project board if you ever want one — the
 issue bodies are already written for it. No board is required to use this list.
 
+**Progress (run `2026-10-09`):** R1–R4 and R6–R14 shipped (#15–#25). R5 is partial — `HIPAA`,
+`HHS-PART2`, `CMMC`, `IL-AIVIA` recovered via `mirrors`, while `BR-LGPD` remains open and
+`NYDFS-500` / `ECOA-REG-B` / `NAIC-AI` / `SG-MODEL-AI` regressed on the last run. R12 (repo
+identity) is blocked on an account-level decision.
+
 ---
 
 ## Now (P0) — Unblock credibility
@@ -97,7 +102,7 @@ issue bodies are already written for it. No board is required to use this list.
 ### R8 — Publish a balanced per-framework slice (or weights) (#8)
 
 - **Priority:** P1 · **Area:** data-quality · **Labels:** `data-quality`, `p1`
-- **Problem:** `CJIS-6.1` + `IRS-1075` + `SOX` ≈ **55%** of chunks (`CJIS-6.1` alone ≈ 30%). Naive
+- **Problem:** `CJIS-6.1` + `IRS-1075` + `SOX` ≈ **45%** of chunks (`CJIS-6.1` alone ≈ 23%). Naive
   consumers get a criminal-justice-security corpus with a compliance garnish.
 - **Proposal:** materialize cookbook recipe 8 as a shipped, capped/weighted companion slice — or add
   a documented per-framework weight column so consumers don't rediscover the skew.

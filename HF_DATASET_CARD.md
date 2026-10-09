@@ -76,7 +76,7 @@ Measured from `data/silver/compliance_chunks.parquet` (run `2026-10-09`):
 
 ## Gaps (documented, not hidden)
 
-Seven public frameworks currently yield **0 chunks**: `EU-AI-ACT` and `GDPR` (EUR-Lex serves a JavaScript shell), `HIPAA`, `HHS-PART2`, `CMMC` (WAF HTTP 403), `IL-AIVIA` (timeout), `BR-LGPD` (URL returns an HTML wrapper, not a PDF). Every source's outcome (`ok` / `skipped_public_only` / `error`) is recorded in the repo's `manifest.jsonl`, and gaps are tracked release-over-release. Details: [FAQ](https://github.com/dataengineergaurav/open-regulatory-corpus/blob/main/docs/FAQ.md#why-are-some-frameworks-empty).
+Five public frameworks currently yield **0 chunks**: `NYDFS-500`, `ECOA-REG-B`, `NAIC-AI` (non-200 response), `SG-MODEL-AI` (WAF challenge), and `BR-LGPD` (URL returns an HTML wrapper, not a PDF). Every source's outcome (`ok` / `skipped_public_only` / `error`) is recorded in the repo's `manifest.jsonl`, and gaps are tracked release-over-release. Details: [FAQ](https://github.com/dataengineergaurav/open-regulatory-corpus/blob/main/docs/FAQ.md#why-are-some-frameworks-empty).
 
 ## Provenance
 
