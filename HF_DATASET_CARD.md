@@ -76,7 +76,16 @@ Measured from `data/silver/compliance_chunks.parquet` (run `2026-10-09`):
 
 ## Gaps (documented, not hidden)
 
-Five public frameworks currently yield **0 chunks**: `NYDFS-500`, `ECOA-REG-B`, `NAIC-AI` (non-200 response), `SG-MODEL-AI` (WAF challenge), and `BR-LGPD` (URL returns an HTML wrapper, not a PDF). Every source's outcome (`ok` / `skipped_public_only` / `error`) is recorded in the repo's `manifest.jsonl`, and gaps are tracked release-over-release. Details: [FAQ](https://github.com/dataengineergaurav/open-regulatory-corpus/blob/main/docs/FAQ.md#why-are-some-frameworks-empty).
+<!-- sync:gaps -->
+**5** of the 38 public frameworks currently produce **zero chunks**:
+
+| Framework | Why it's empty |
+|---|---|
+| `BR-LGPD`, `SG-MODEL-AI` | Served a shell / wrapper page (filtered at the Silver stage) |
+| `ECOA-REG-B`, `NAIC-AI`, `NYDFS-500` | The server returned a non-200 response |
+<!-- /sync:gaps -->
+
+Every source's outcome (`ok` / `skipped_public_only` / `error`) is recorded in the repo's `manifest.jsonl`, and gaps are tracked release-over-release. Details: [FAQ](https://github.com/dataengineergaurav/open-regulatory-corpus/blob/main/docs/FAQ.md#why-are-some-frameworks-empty).
 
 ## Provenance
 

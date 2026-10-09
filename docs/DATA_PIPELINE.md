@@ -91,6 +91,7 @@ pixi run sync-published    # rewrite regions + update GitHub About + push HF car
 ```
 
 - Only text between `<!-- sync:* -->` markers is generated; surrounding prose stays hand-written.
+- Generated regions: `headline` and `stats` (README + HF card) and `gaps` (README + HF card + `docs/FAQ.md`). The empty-framework table is computed from the artifacts, so it has one owner and can't drift.
 - `sync-published` is **idempotent** — it writes or commits only when something changed — and **degrades gracefully**: a GitHub permission failure warns but never blocks the release.
 - CI runs `check-docs` on every push/PR; the monthly release runs `sync-published` after publishing (needs `secrets.HF_TOKEN`; GitHub About also needs a token with repo-metadata scope, e.g. `secrets.REPO_ADMIN_TOKEN`).
 
