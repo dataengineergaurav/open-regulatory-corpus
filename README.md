@@ -46,7 +46,7 @@ Every release ships a `SHA256SUMS` file alongside the artifacts.
 **3. Run the whole pipeline yourself (from source):**
 ```bash
 pixi install
-pixi run pipeline run_id=2026-09-01
+RUN_ID=2026-09-01 pixi run pipeline
 # crawl → verify-bronze → build-silver → verify-silver
 ```
 Artifacts land in `data/bronze/<run_id>/raw/` (58 files) and `data/silver/compliance_chunks.parquet`.

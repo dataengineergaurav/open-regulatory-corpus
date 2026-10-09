@@ -48,13 +48,13 @@ scripts/build_silver.py                 # trafilatura + PyMuPDF → 512/50 → d
 ## Run
 
 ```bash
-pixi run pipeline run_id=2026-09-01          # full Bronze → Silver
+RUN_ID=2026-09-01 pixi run pipeline          # full Bronze → Silver
 ```
 
 Or stepwise:
 
 ```bash
-pixi run crawl run_id=2026-09-01
+RUN_ID=2026-09-01 pixi run crawl
 pixi run verify-bronze
 pixi run build-silver
 pixi run verify-silver

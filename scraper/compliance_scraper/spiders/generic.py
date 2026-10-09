@@ -54,10 +54,10 @@ class GenericSpider(scrapy.Spider):
         urls = meta.get("urls", [])
         if index >= len(urls):
             return None
+        clean = {"id": meta.get("id"), "urls": urls, "orig_url": urls[index], "try_index": index}
         return scrapy.Request(
             urls[index], callback=self.parse, errback=self.err,
-            meta={**meta, "orig_url": urls[index], "try_index": index},
-            dont_filter=True,
+            meta=clean, dont_filter=True,
         )
 
     def parse(self, response):

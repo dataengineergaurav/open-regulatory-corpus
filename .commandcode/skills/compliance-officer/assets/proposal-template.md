@@ -66,7 +66,7 @@ old value in a comment above. Keep the array valid JSON (watch trailing commas).
 ## 7. Suggested next steps (for a human — do not run)
 
 ```bash
-pixi run pipeline run_id=<YYYY-MM-DD>   # apply + re-crawl
+RUN_ID=<YYYY-MM-DD> pixi run pipeline   # apply + re-crawl
 pixi run verify                          # verify-bronze + verify-silver
 pixi run check-docs                      # confirm published numbers
 pixi run sync-published                  # if numbers moved
