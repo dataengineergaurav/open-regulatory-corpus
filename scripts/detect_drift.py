@@ -52,6 +52,25 @@ def diff(current: dict, previous: dict) -> dict:
     }
 
 
+def resolve(current: str | None = None, previous: str | None = None):
+    """Resolve the (current, previous) run paths; previous is None if there's nothing to compare."""
+    rs = runs()
+    if not rs:
+        return None, None
+    cur = Path(current) if current else rs[-1]
+    if not cur.is_absolute():
+        cur = ROOT / cur
+    if previous:
+        prev = Path(previous)
+        if not prev.is_absolute():
+            prev = ROOT / previous
+    else:
+        names = [p.name for p in rs]
+        idx = names.index(cur.name) if cur.name in names else len(rs) - 1
+        prev = rs[idx - 1] if idx > 0 else None
+    return cur, prev
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Diff two Bronze runs by raw document hash.")
     ap.add_argument("--current", help="run id or path (default: newest run)")
@@ -61,25 +80,11 @@ def main() -> int:
     ap.add_argument("--fail-on-drift", action="store_true", help="exit 1 if anything changed")
     args = ap.parse_args()
 
-    rs = runs()
-    if not rs:
+    cur, prev = resolve(args.current, args.previous)
+    if cur is None:
         print("no Bronze runs found"); return 0
-
-    cur = Path(args.current) if args.current else rs[-1]
-    if not cur.is_absolute():
-        cur = ROOT / cur
     if not (cur / "manifest.jsonl").exists():
         print(f"current run has no manifest: {cur}"); return 0
-
-    if args.previous:
-        prev = Path(args.previous)
-        if not prev.is_absolute():
-            prev = ROOT / prev
-    else:
-        names = [p.name for p in rs]
-        idx = names.index(cur.name) if cur.name in names else len(rs) - 1
-        prev = rs[idx - 1] if idx > 0 else None
-
     if prev is None or not (prev / "manifest.jsonl").exists():
         print(f"current={cur.name}: no previous run to compare against"); return 0
 

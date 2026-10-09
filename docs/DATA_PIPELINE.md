@@ -66,6 +66,7 @@ pixi run verify-silver
 | `verify-silver` | `python scripts/verify_silver.py` | Assert Silver exists with a plausible row count |
 | `verify-sources` | `python scripts/verify_sources.py` | Report per-source acquisition health (healthy / empty / error) |
 | `detect-drift` | `python scripts/detect_drift.py` | Diff the newest Bronze run against the previous one by `sha256_raw` |
+| `build-changelog` | `python scripts/build_changelog.py` | Render a human-readable changelog (md + json) from the drift |
 | `verify` | all three verifiers | `verify-bronze && verify-silver && verify-sources` |
 | `pipeline` | all four, chained | End-to-end |
 

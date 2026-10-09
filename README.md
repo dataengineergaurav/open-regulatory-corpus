@@ -193,6 +193,7 @@ open-regulatory-corpus/
 │   ├── verify_silver.py      asserts Silver row count + schema
 │   ├── verify_sources.py     reports per-source acquisition health (gaps)
 │   ├── detect_drift.py       diffs two Bronze runs by raw hash (drift report)
+│   ├── build_changelog.py    renders a changelog (md + json) from the drift
 │   ├── publish_hf.py         uploads Silver + card to Hugging Face
 │   └── sync_published.py     keeps README / HF card / GitHub About in sync
 ├── data/
@@ -211,6 +212,8 @@ open-regulatory-corpus/
 ## How it stays fresh
 
 A scheduled GitHub Action runs on the **1st of every month**: it crawls, verifies Bronze, builds and verifies Silver, packages the artifacts, cuts a GitHub Release with a `SHA256SUMS`, and publishes to Hugging Face. Every run is identified by a `run_id` (e.g. `2026-09-01_1903`), and Bronze keeps every run side-by-side, so history is never overwritten.
+
+Each release also ships a **changelog** (`changelog-<run_id>.md`) listing the documents added, changed, or removed since the previous run — detected by diffing Bronze hashes, so a framework that was revised in place shows up even without a version bump. See [Releases](https://github.com/dataengineergaurav/open-regulatory-corpus/releases).
 
 Want to add a framework? Add one object to [`data/sources.json`](data/sources.json) and open a PR — the spider is fully data-driven. See [`docs/ARCHITECTURE.md#extending-the-corpus`](docs/ARCHITECTURE.md#extending-the-corpus).
 

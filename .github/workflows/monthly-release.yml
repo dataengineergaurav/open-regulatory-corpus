@@ -44,8 +44,11 @@ jobs:
       - name: Verify Silver
         run: pixi run python scripts/verify_silver.py
 
-      - name: Detect drift vs previous run
-        run: pixi run detect-drift | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Detect drift + build changelog vs previous run
+        run: |
+          mkdir -p dist
+          pixi run detect-drift | tee -a "$GITHUB_STEP_SUMMARY"
+          pixi run python scripts/build_changelog.py --out-dir dist | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: Package datasets
         run: |
@@ -90,6 +93,8 @@ jobs:
             dist/compliance-silver-${RUN_ID}.parquet \
             dist/compliance-silver-${RUN_ID}.zip \
             dist/SHA256SUMS.txt \
+            dist/changelog-${RUN_ID}.md \
+            dist/changelog-${RUN_ID}.json \
             data/bronze/${RUN_ID}/manifest.jsonl#manifest.jsonl \
             data/bronze/${RUN_ID}/scrapy_stats.json#scrapy_stats.json
 
