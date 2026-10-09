@@ -3,7 +3,7 @@
 Every source the corpus tracks, by domain, with its current URL, status, and **what to watch**.
 This is your starting map for Step 2 (current affairs) and Step 3 (source analysis).
 
-- URLs mirror `data/sources.json` at the current run (`2026-10-09`). Always re-read the live file —
+- URLs mirror `data/sources.json` at the current run (`<!-- sync:run_id -->2026-10-09<!-- /sync:run_id -->`). Always re-read the live file —
   it is the source of truth and may have changed.
 - **Status** legend: `ok` = yields chunks · `gap` = public but 0 chunks · `skipped` = paywalled.
   Statuses move between runs (a site can start blocking, or a mirror can recover one), so always
@@ -94,7 +94,7 @@ confirm the served bytes are real document text.
 `CMMC` (eCFR), and `IL-AIVIA` (which became reachable). That is the pattern to follow: add an
 authoritative alternate URL to `mirrors` rather than mutating the canonical `url`.
 
-**Still open (`2026-10-09`):** `NYDFS-500`, `ECOA-REG-B`, `NAIC-AI`, `SG-MODEL-AI`, `BR-LGPD`.
+**Still open:** the live list is `data/stats/gaps.csv` — the weekly gap watch tracks it.
 
 | Framework | Blocker | Lead to try |
 |---|---|---|

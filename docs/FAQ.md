@@ -38,12 +38,14 @@ Monthly. A scheduled GitHub Action runs on the 1st of each month, and each run g
 
 ### Why are some frameworks empty?
 
-<!-- sync:gaps_table -->**5** of the 38 public frameworks currently produce **zero chunks**:
+<!-- sync:gaps_table -->
+**5** of the 38 public frameworks currently produce **zero chunks**:
 
 | Framework | Why it's empty |
 |---|---|
 | `BR-LGPD`, `SG-MODEL-AI` | Served a shell / wrapper page (filtered at the Silver stage) |
-| `ECOA-REG-B`, `NAIC-AI`, `NYDFS-500` | The server returned a non-200 response |<!-- /sync:gaps_table -->
+| `ECOA-REG-B`, `NAIC-AI`, `NYDFS-500` | The server returned a non-200 response |
+<!-- /sync:gaps_table -->
 
 Two of these land raw bytes in Bronze and then extract to noise — `SG-MODEL-AI` (a WAF challenge) and `BR-LGPD` (navigation chrome) — which the Silver stage filters out. The remediation notes are in [`DATA_PIPELINE.md`](DATA_PIPELINE.md#troubleshooting).
 

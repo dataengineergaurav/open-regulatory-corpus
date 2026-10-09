@@ -22,6 +22,13 @@ class TestSyncMarkers(unittest.TestCase):
         self.assertEqual(unknown, ["nope"])
         self.assertIn("<!-- sync:nope -->1<!-- /sync:nope -->", out)
 
+    def test_block_marker_keeps_its_newlines(self):
+        import sync_published as sp
+        text = "<!-- sync:gaps_table -->\nold\n<!-- /sync:gaps_table -->"
+        out, _ = sp.sync_markers(text)
+        self.assertTrue(out.startswith("<!-- sync:gaps_table -->\n"), repr(out[:40]))
+        self.assertTrue(out.endswith("\n<!-- /sync:gaps_table -->"), repr(out[-40:]))
+
     def test_idempotent(self):
         import sync_published as sp
         once, _ = sp.sync_markers("<!-- sync:docs -->0<!-- /sync:docs -->")

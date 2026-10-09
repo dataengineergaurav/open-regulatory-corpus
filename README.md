@@ -73,12 +73,14 @@ Artifacts land in `data/bronze/<run_id>/raw/` (<!-- sync:raw_files -->57<!-- /sy
 
 Data work is mostly about what *didn't* land, and pretending otherwise makes a corpus untrustworthy.
 
-<!-- sync:gaps_table -->**5** of the 38 public frameworks currently produce **zero chunks**:
+<!-- sync:gaps_table -->
+**5** of the 38 public frameworks currently produce **zero chunks**:
 
 | Framework | Why it's empty |
 |---|---|
 | `BR-LGPD`, `SG-MODEL-AI` | Served a shell / wrapper page (filtered at the Silver stage) |
-| `ECOA-REG-B`, `NAIC-AI`, `NYDFS-500` | The server returned a non-200 response |<!-- /sync:gaps_table -->
+| `ECOA-REG-B`, `NAIC-AI`, `NYDFS-500` | The server returned a non-200 response |
+<!-- /sync:gaps_table -->
 
 `SG-MODEL-AI` and `BR-LGPD` land as raw bytes but extract to noise — a WAF challenge and navigation chrome respectively — and are dropped at the Silver stage. The full remediation playbook lives in [`docs/DATA_PIPELINE.md`](docs/DATA_PIPELINE.md#troubleshooting). **Gaps are tracked as data, not hidden** — the missing set is watched weekly and recovering one is a measurable win release-over-release.
 
@@ -137,14 +139,16 @@ Full field-by-field reference: [`docs/DATA_DICTIONARY.md`](docs/DATA_DICTIONARY.
 
 ## By the numbers
 
-<!-- sync:stats_bullets -->Measured from `data/silver/compliance_chunks.parquet` (run `2026-10-09`):
+<!-- sync:stats_bullets -->
+Measured from `data/silver/compliance_chunks.parquet` (run `2026-10-09`):
 
 - **2,041** chunks across **54** documents, spanning **33 of 38** public frameworks
 - **~1,029,983** estimated tokens of compliance text
 - **1,292** PDF chunks / **749** HTML chunks
 - **384**-word median chunk length
 - Largest documents: **CJIS-6.1** (464), **IRS-1075** (228), **SOX** (226), **GDPR** (163)
-- Bronze: **57** raw files (**25** PDF · **32** HTML, **46 MB**); manifest **57** ok · **8** skipped · **3** error<!-- /sync:stats_bullets -->
+- Bronze: **57** raw files (**25** PDF · **32** HTML, **46 MB**); manifest **57** ok · **8** skipped · **3** error
+<!-- /sync:stats_bullets -->
 
 > The top three documents are <!-- sync:top3_share -->~45%<!-- /sync:top3_share --> of all chunks. That's a real characteristic of regulatory text (CJIS and IRS-1075 are enormous), and something to weight for when sampling. A capped companion slice ships for exactly this reason.
 

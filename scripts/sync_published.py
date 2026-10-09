@@ -108,11 +108,15 @@ def sync_markers(text: str) -> tuple[str, list[str]]:
 
     def repl(m: re.Match) -> str:
         name = m.group(1)
+        inner = m.group(2)
         try:
             value = resolve(name)
         except KeyError:
             unknown.append(name)
             return m.group(0)
+        # block markers (multi-line) keep their newlines; inline markers stay flush
+        if "\n" in inner:
+            return f"<!-- sync:{name} -->\n{value}\n<!-- /sync:{name} -->"
         return f"<!-- sync:{name} -->{value}<!-- /sync:{name} -->"
 
     return MARKER.sub(repl, text), unknown
@@ -201,7 +205,10 @@ def main() -> int:
           f"{stats['frameworks_present']}/{stats['sources_public']} frameworks · run {stats['run_id']}")
 
     docs = ("README.md", "HF_DATASET_CARD.md", "docs/FAQ.md", "docs/DATA_DICTIONARY.md",
-            "docs/DATA_PIPELINE.md", "docs/COOKBOOK.md", "docs/ARCHITECTURE.md")
+            "docs/DATA_PIPELINE.md", "docs/COOKBOOK.md", "docs/ARCHITECTURE.md",
+            "docs/ROADMAP.md",
+            ".commandcode/skills/compliance-officer/references/project-context.md",
+            ".commandcode/skills/compliance-officer/references/framework-watchlist.md")
     drift = False
     for rel in docs:
         d = sync_markers_file(rel, args.check)

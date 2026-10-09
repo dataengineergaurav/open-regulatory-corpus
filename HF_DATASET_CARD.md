@@ -61,23 +61,27 @@ Related: [search notebook (Colab, no GPU)](https://colab.research.google.com/git
 
 ## By the numbers
 
-<!-- sync:stats_bullets -->Measured from `data/silver/compliance_chunks.parquet` (run `2026-10-09`):
+<!-- sync:stats_bullets -->
+Measured from `data/silver/compliance_chunks.parquet` (run `2026-10-09`):
 
 - **2,041** chunks across **54** documents, spanning **33 of 38** public frameworks
 - **~1,029,983** estimated tokens of compliance text
 - **1,292** PDF chunks / **749** HTML chunks
 - **384**-word median chunk length
 - Largest documents: **CJIS-6.1** (464), **IRS-1075** (228), **SOX** (226), **GDPR** (163)
-- Bronze: **57** raw files (**25** PDF · **32** HTML, **46 MB**); manifest **57** ok · **8** skipped · **3** error<!-- /sync:stats_bullets -->
+- Bronze: **57** raw files (**25** PDF · **32** HTML, **46 MB**); manifest **57** ok · **8** skipped · **3** error
+<!-- /sync:stats_bullets -->
 
 ## Gaps (documented, not hidden)
 
-<!-- sync:gaps_table -->**5** of the 38 public frameworks currently produce **zero chunks**:
+<!-- sync:gaps_table -->
+**5** of the 38 public frameworks currently produce **zero chunks**:
 
 | Framework | Why it's empty |
 |---|---|
 | `BR-LGPD`, `SG-MODEL-AI` | Served a shell / wrapper page (filtered at the Silver stage) |
-| `ECOA-REG-B`, `NAIC-AI`, `NYDFS-500` | The server returned a non-200 response |<!-- /sync:gaps_table -->
+| `ECOA-REG-B`, `NAIC-AI`, `NYDFS-500` | The server returned a non-200 response |
+<!-- /sync:gaps_table -->
 
 Every source's outcome (`ok` / `skipped_public_only` / `error`) is recorded in the repo's `manifest.jsonl`, and gaps are tracked release-over-release. Details: [FAQ](https://github.com/dataengineergaurav/open-regulatory-corpus/blob/main/docs/FAQ.md#why-are-some-frameworks-empty).
 

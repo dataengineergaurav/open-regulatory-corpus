@@ -21,7 +21,7 @@ documents. Public sources only: paywalled standards are recorded as skipped, nev
 ```
  SOURCES            BRONZE                SILVER              (future) GOLD
  sources.json  →    raw bytes        →    chunks          →   crosswalks
- 46 entries         57 files              2,041 rows          (model-free)
+ 46 entries         raw files            derived rows         (model-free)
  38 public          + manifest.jsonl      + parquet
  8 skipped          + headers/            + silver_stats.json
  ── curated ──►     ── immutable ──►      ── derived ──►      ── future ──
@@ -35,7 +35,7 @@ documents. Public sources only: paywalled standards are recorded as skipped, nev
 | Gold | *(planned)* | — | from Silver |
 
 The asymmetry is deliberate: **Bronze is an archive, Silver is a cache.** Raw and headers are
-gitignored (Release assets, ~46 MB/run); the parquet, manifest and stats stay in git.
+gitignored (Release assets, roughly <!-- sync:raw_mib -->46 MB<!-- /sync:raw_mib --> per run); the parquet, manifest and stats stay in git.
 
 ## Components
 
@@ -130,20 +130,23 @@ DOMAINS = {
 }
 ```
 
-## The gaps (current run, `2026-10-09`)
+## The gaps (current run, `<!-- sync:run_id -->2026-10-09<!-- /sync:run_id -->`)
 
-Five public frameworks yield **0 chunks** — a *recoverable* gap, not a missing source:
+A *recoverable* gap, not a missing source:
 
-| Framework | Cause |
+<!-- sync:gaps_table -->
+**5** of the 38 public frameworks currently produce **zero chunks**:
+
+| Framework | Why it's empty |
 |---|---|
-| `NYDFS-500`, `ECOA-REG-B`, `NAIC-AI` | Server returned a non-200 (blocked / WAF) |
-| `SG-MODEL-AI` | Landed a WAF challenge page, filtered at Silver |
-| `BR-LGPD` | URL returns an HTML wrapper, not the PDF (and the only static source is Portuguese) |
+| `BR-LGPD`, `SG-MODEL-AI` | Served a shell / wrapper page (filtered at the Silver stage) |
+| `ECOA-REG-B`, `NAIC-AI`, `NYDFS-500` | The server returned a non-200 response |
+<!-- /sync:gaps_table -->
 
 The earlier EUR-Lex pair (`GDPR`, `EU-AI-ACT`) and `HIPAA` / `HHS-PART2` / `CMMC` / `IL-AIVIA`
 **were recovered via `mirrors`** — a good worked example for a recovery proposal.
 
-Distribution is skewed: `CJIS-6.1` (464), `IRS-1075` (228), `SOX` (226) ≈ 45% of all chunks.
+Distribution is skewed: `CJIS-6.1`, `IRS-1075`, and `SOX` together are <!-- sync:top3_share -->~45%<!-- /sync:top3_share --> of all chunks.
 
 ## Roadmap (align proposals to this)
 
