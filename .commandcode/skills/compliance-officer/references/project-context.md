@@ -87,10 +87,10 @@ Manifest line shapes (three, distinguished by `status`): `ok` (with `bytes`, `sh
 
 | Task | Does |
 |---|---|
-| `pixi run crawl run_id=<YYYY-MM-DD>` | Fetch all `public` sources into Bronze |
+| `RUN_ID=<YYYY-MM-DD> pixi run crawl` | Fetch all `public` sources into Bronze |
 | `pixi run verify-bronze` / `verify-silver` | Assert the invariants |
 | `pixi run build-silver` | Extract, dedup, chunk → parquet |
-| `pixi run pipeline run_id=<…>` | crawl → verify-bronze → build-silver → verify-silver |
+| `RUN_ID=<YYYY-MM-DD> pixi run pipeline` | crawl → verify-bronze → build-silver → verify-silver |
 | `pixi run check-docs` | Exit 1 if published numbers drifted |
 | `pixi run sync-published` | Rewrite README / HF card / GitHub About from artifacts |
 

@@ -52,7 +52,7 @@ jobs:
               --label gap-recovery,roadmap \
               --body "The weekly gap watch found these frameworks now serving usable text: **$IDS**.
 
-          Re-run the pipeline to recover them: \`pixi run pipeline run_id=$(date +%Y-%m-%d)\`.
+          Re-run the pipeline to recover them: \`RUN_ID=$(date +%Y-%m-%d) pixi run pipeline\`.
 
           Run summary: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
           else

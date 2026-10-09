@@ -193,7 +193,7 @@ The crawl is slow by design. The goal is a corpus that can keep running monthly 
 ### Add a framework
 
 1. Append one object to [`data/sources.json`](../data/sources.json): `{"id": "MY-RULE", "url": "…", "public": true}`.
-2. Run `pixi run pipeline run_id=<date>`. Done — the spider is data-driven; no code touches needed.
+2. Run `RUN_ID=<date> pixi run pipeline`. Done — the spider is data-driven; no code touches needed.
 
 If the site needs a special fetch, look at how `CJIS-6.1` (`/view` unwrapping) or the PDF-discovery block in `generic.py` handles its case, and add a narrow rule there.
 

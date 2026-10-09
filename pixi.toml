@@ -6,7 +6,7 @@ platforms = ["osx-arm64", "linux-64"]
 version = "0.1.0"
 
 [tasks]
-crawl = { cmd = "python -m scrapy crawl compliance -a run_id={{ run_id }}", cwd = "scraper", description = "Crawl Bronze (run: pixi run crawl run_id=2026-09-01)" }
+crawl = { cmd = "python -m scrapy crawl compliance -a run_id=$RUN_ID", cwd = "scraper", description = "Crawl Bronze (RUN_ID=2026-09-01 pixi run crawl; blank run_id = timestamp)" }
 verify-bronze = { cmd = "python scripts/verify_bronze.py", description = "Verify Bronze" }
 validate-sources = { cmd = "python scripts/validate_sources.py", description = "Validate data/sources.json against its schema" }
 build-silver = { cmd = "python scripts/build_silver.py", description = "Build Silver parquet" }
@@ -20,7 +20,7 @@ build-changelog = { cmd = "python scripts/build_changelog.py", description = "Re
 verify = { cmd = "python scripts/verify_bronze.py && python scripts/verify_silver.py && python scripts/verify_sources.py", description = "Verify Bronze+Silver + per-source acquisition health" }
 check-docs = { cmd = "python scripts/sync_published.py --check --no-about --no-hf", description = "Fail if README/HF card numbers drift from artifacts" }
 sync-published = { cmd = "python scripts/sync_published.py", description = "Sync README, HF card + GitHub About from artifacts" }
-pipeline = { cmd = "pixi run crawl run_id={{ run_id }} && pixi run verify-bronze && pixi run build-silver && pixi run verify-silver", description = "Full Bronze→Silver pipeline" }
+pipeline = { cmd = "pixi run crawl && pixi run verify-bronze && pixi run build-silver && pixi run verify-silver", description = "Full Bronze→Silver pipeline (RUN_ID=2026-09-01 pixi run pipeline)" }
 
 [dependencies]
 python = ">=3.11,<3.13"
