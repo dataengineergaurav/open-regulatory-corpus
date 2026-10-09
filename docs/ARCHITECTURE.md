@@ -39,7 +39,7 @@ The project follows the medallion (Bronze → Silver → Gold) pattern common in
 | **Sources** | `data/sources.json` | Edited by hand (the only curated input) | n/a | Free |
 | **Bronze** | `data/bronze/<run_id>/` | **Append-only** — never edited | **No** — the web changes | Expensive (network) |
 | **Silver** | `data/silver/` | Overwritten each build | **Yes** — deterministic from Bronze | Cheap (local CPU) |
-| **Gold** | *(planned)* | — | Yes from Silver | Moderate (embeddings) |
+| **Gold** | *(planned)* | — | Yes from Silver | Low (model-free derivations) |
 
 The asymmetry is the point. Bronze is treated as an **archive**; Silver is treated as a **cache**. You can throw Silver away and rebuild it a hundred times from the same Bronze and get the same bytes. You cannot re-crawl last month's portal and get the same bytes — pages get WAF'd, redirects move, content is revised. So Bronze is where the durability budget is spent.
 
@@ -203,7 +203,9 @@ All extraction lives in `build_silver.py`'s `extract_text`. Add a branch by file
 
 ### Add a new stage (the planned "Gold")
 
-Gold — embeddings — should be a **new script** (`scripts/build_gold.py`) that reads `compliance_chunks.parquet` and writes an index. It must not modify Silver. That keeps the medallion invariant: each stage consumes the previous, produces a new artifact, and never mutates what it reads. The [cookbook](COOKBOOK.md#5--export-a-rag-ready-slice) already shows the slice shape a Gold stage would consume.
+Gold should be a **new script** (`scripts/build_gold.py`) that reads `compliance_chunks.parquet` and writes derived artifacts. It must not modify Silver — each stage consumes the previous, produces a new artifact, and never mutates what it reads.
+
+Gold is deliberately **model-free and deterministic**: a topic/control crosswalk (which frameworks address a given control), a framework index, and exact token counts. **Embeddings are not a committed stage.** They belong to the consumer — the [cookbook](COOKBOOK.md#5--export-a-rag-ready-slice) shows the RAG-ready slice to feed an embedding job — because embedding models drift and would make Gold non-reproducible, breaking Silver's rebuildable, no-GPU promise.
 
 ### Add a source that is neither HTML nor PDF
 

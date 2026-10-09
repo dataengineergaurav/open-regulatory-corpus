@@ -41,7 +41,7 @@ docs/
 
 ## Conventions used in these docs
 
-- **Bronze / Silver** — medallion stages. Bronze = raw landing; Silver = cleaned + chunked. A "Gold" stage (embeddings) is planned but not built.
+- **Bronze / Silver** — medallion stages. Bronze = raw landing; Silver = cleaned + chunked. A "Gold" stage is planned: **model-free** derived artifacts (crosswalks, framework index, exact token counts), not embeddings.
 - **`framework_id`** — a stable short code (e.g. `NIST-CSF2`). A `_pdfN` suffix (`SOX_pdf1`) marks a *secondary* document belonging to the same framework.
 - **`run_id`** — the identifier of one pipeline execution, e.g. `2026-09-01_1903` (date + HHMM).
 - **`*` marker** — in tables, denotes a framework tracked but currently producing 0 chunks.

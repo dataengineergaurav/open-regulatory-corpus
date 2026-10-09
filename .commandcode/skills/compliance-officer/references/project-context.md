@@ -20,8 +20,8 @@ documents. Public sources only: paywalled standards are recorded as skipped, nev
 
 ```
  SOURCES            BRONZE                SILVER              (future) GOLD
- sources.json  →    raw bytes        →    chunks          →   vectors
- 46 entries         58 files              1,519 rows          embeddings
+ sources.json  →    raw bytes        →    chunks          →   crosswalks
+ 46 entries         58 files              1,519 rows          (model-free)
  38 public          + manifest.jsonl      + parquet
  8 skipped          + headers/            + silver_stats.json
  ── curated ──►     ── immutable ──►      ── derived ──►      ── future ──
@@ -137,7 +137,7 @@ Distribution is skewed: `CJIS-6.1` (466), `IRS-1075` (228), `SOX` (226) ≈ 55% 
 ## Roadmap (align proposals to this)
 
 1. **Recover the gaps** — the headline goal; a shrinking missing set is the project's definition of progress.
-2. **Gold stage** — optional embeddings/vector index; must consume Silver without mutating it.
+2. **Gold stage** — model-free derived artifacts (topic/control crosswalks, framework index, exact token counts); embeddings stay a consumer recipe. Must consume Silver without mutating it.
 3. **Exact token counts** — swap `token_est` for a real tokenizer where precision matters.
 4. **Automated drift detection** — diff `sha256_raw` across releases to flag changed documents.
 
