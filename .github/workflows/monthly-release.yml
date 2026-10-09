@@ -62,6 +62,10 @@ jobs:
           cp data/silver/silver_stats.json dist/silver_stats-${RUN_ID}.json
           # Also plain zip for Silver for convenience
           zip -j dist/compliance-silver-${RUN_ID}.zip data/silver/compliance_chunks.parquet data/silver/silver_stats.json
+          # Balanced companion slice (capped per framework)
+          pixi run build-balanced
+          cp data/silver/balanced_slice.parquet dist/compliance-balanced-${RUN_ID}.parquet
+          cp data/silver/balanced_slice.json dist/balanced_stats-${RUN_ID}.json
           ls -lh dist/
           sha256sum dist/* > dist/SHA256SUMS.txt
           cat dist/SHA256SUMS.txt
@@ -92,6 +96,8 @@ jobs:
             dist/compliance-bronze-${RUN_ID}.tar.gz \
             dist/compliance-silver-${RUN_ID}.parquet \
             dist/compliance-silver-${RUN_ID}.zip \
+            dist/compliance-balanced-${RUN_ID}.parquet \
+            dist/balanced_stats-${RUN_ID}.json \
             dist/SHA256SUMS.txt \
             dist/changelog-${RUN_ID}.md \
             dist/changelog-${RUN_ID}.json \

@@ -231,6 +231,8 @@ balanced = (df.groupby("stem", group_keys=False)
 print(f"{len(balanced)} chunks, max {balanced.stem.value_counts().max()} per framework")
 ```
 
+**A balanced slice ships with the data.** `data/silver/balanced_slice.parquet` is this recipe already applied (cap 30, seed 0): 468 chunks, ≤30 per framework, so the big three fall from most of the corpus to about a fifth of it. Build it yourself with `python scripts/build_balanced_slice.py --cap 30`.
+
 For retrieval evaluation, always report per-framework metrics, not a single blended number — a corpus-wide average is really an average over CJIS.
 
 ---
