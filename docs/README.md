@@ -12,6 +12,7 @@ This is the map. The [project README](../README.md) is the front door; everythin
 | Look up **exactly** what a field or file contains | [DATA_DICTIONARY.md](DATA_DICTIONARY.md) |
 | Do a **task** — filter, search, compare, export for RAG | [COOKBOOK.md](COOKBOOK.md) |
 | Get answers about gaps, licensing, provenance, roadmap | [FAQ.md](FAQ.md) |
+| See the prioritized engineering roadmap (issues, Now / Next / Later) | [ROADMAP.md](ROADMAP.md) |
 | Run code without installing anything | [notebooks/](../notebooks/) |
 
 ## The docs, in one screen
@@ -26,7 +27,8 @@ docs/
 │                      inventory, PDF inventory, troubleshooting.
 ├── DATA_DICTIONARY.md Field-level reference for every artifact.
 ├── COOKBOOK.md        Task-oriented recipes with copy-paste code.
-└── FAQ.md             Questions, honest gaps, licensing, roadmap.
+├── FAQ.md             Questions, honest gaps, licensing, roadmap.
+└── ROADMAP.md         Prioritized engineering roadmap (issues, Now / Next / Later).
 ```
 
 ## The mental model in 60 seconds

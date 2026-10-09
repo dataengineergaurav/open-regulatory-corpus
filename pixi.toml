@@ -10,7 +10,8 @@ crawl = { cmd = "python -m scrapy crawl compliance -a run_id={{ run_id }}", cwd 
 verify-bronze = { cmd = "python scripts/verify_bronze.py", description = "Verify Bronze" }
 build-silver = { cmd = "python scripts/build_silver.py", description = "Build Silver parquet" }
 verify-silver = { cmd = "python scripts/verify_silver.py", description = "Verify Silver" }
-verify = { cmd = "python scripts/verify_bronze.py && python scripts/verify_silver.py", description = "Verify Bronze+Silver" }
+verify-sources = { cmd = "python scripts/verify_sources.py", description = "Report per-source acquisition health (gaps)" }
+verify = { cmd = "python scripts/verify_bronze.py && python scripts/verify_silver.py && python scripts/verify_sources.py", description = "Verify Bronze+Silver + per-source acquisition health" }
 check-docs = { cmd = "python scripts/sync_published.py --check --no-about --no-hf", description = "Fail if README/HF card numbers drift from artifacts" }
 sync-published = { cmd = "python scripts/sync_published.py", description = "Sync README, HF card + GitHub About from artifacts" }
 pipeline = { cmd = "pixi run crawl run_id={{ run_id }} && pixi run verify-bronze && pixi run build-silver && pixi run verify-silver", description = "Full Bronze→Silver pipeline" }

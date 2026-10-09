@@ -164,7 +164,17 @@ Measured from `data/silver/compliance_chunks.parquet` (run `2026-09-01_1903`):
 | [`docs/DATA_DICTIONARY.md`](docs/DATA_DICTIONARY.md) | Every artifact and field, defined |
 | [`docs/COOKBOOK.md`](docs/COOKBOOK.md) | Recipes: filter, search, compare, export for RAG |
 | [`docs/FAQ.md`](docs/FAQ.md) | Gaps, licensing, provenance, roadmap |
+| [`docs/ROADMAP.md`](docs/ROADMAP.md) | Prioritized engineering roadmap — issues grouped Now / Next / Later |
 | [`notebooks/`](notebooks/) | Runnable Colab notebooks (search, EDA, analysis) |
+| [`.commandcode/skills/compliance-officer/`](.commandcode/skills/compliance-officer/SKILL.md) | Agent skill: audit the corpus, research current affairs, propose source updates |
+
+The **`compliance-officer`** skill acts as the corpus's compliance officer — it audits how complete and current the corpus is, researches live regulatory affairs, and returns a **review-only proposal**. It never edits `sources.json` or runs the pipeline itself:
+
+```
+/compliance-officer gap-recovery      # find fetchable fixes for the empty frameworks
+/compliance-officer currency-check    # is every tracked framework still current?
+/compliance-officer drift-check       # did a document change without a version bump?
+```
 
 ---
 
@@ -181,6 +191,7 @@ open-regulatory-corpus/
 │   ├── build_silver.py       Bronze → cleaned, deduped, chunked Parquet
 │   ├── verify_bronze.py      asserts manifest/raw/header invariants
 │   ├── verify_silver.py      asserts Silver row count + schema
+│   ├── verify_sources.py     reports per-source acquisition health (gaps)
 │   ├── publish_hf.py         uploads Silver + card to Hugging Face
 │   └── sync_published.py     keeps README / HF card / GitHub About in sync
 ├── data/
@@ -189,6 +200,7 @@ open-regulatory-corpus/
 │   └── silver/               compliance_chunks.parquet + silver_stats.json
 ├── notebooks/                01_search · 02_silver_eda · 03_silver_analysis
 ├── docs/                     you are (one level) here
+├── .commandcode/skills/      agent skills — compliance-officer (audit · research · proposals)
 ├── .github/workflows/        ci.yml + monthly-release.yml
 └── pixi.toml                 environment + named tasks (crawl, build-silver, pipeline…)
 ```

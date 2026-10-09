@@ -64,7 +64,8 @@ pixi run verify-silver
 | `verify-bronze` | `python scripts/verify_bronze.py` | Assert manifest/raw/header invariants |
 | `build-silver` | `python scripts/build_silver.py` | Extract, dedup, chunk → Parquet |
 | `verify-silver` | `python scripts/verify_silver.py` | Assert Silver exists with a plausible row count |
-| `verify` | both verifiers | `verify-bronze && verify-silver` |
+| `verify-sources` | `python scripts/verify_sources.py` | Report per-source acquisition health (healthy / empty / error) |
+| `verify` | all three verifiers | `verify-bronze && verify-silver && verify-sources` |
 | `pipeline` | all four, chained | End-to-end |
 
 The verifiers are also wired into CI (`.github/workflows/ci.yml`) and the monthly release (`.github/workflows/monthly-release.yml`), so a broken run fails before it publishes.
@@ -108,7 +109,7 @@ pixi run sync-published    # rewrite regions + update GitHub About + push HF car
 - **`BR-LGPD` HTML wrapper:** the PDF link is JS-generated, not an `<a href$=.pdf>`. Add the direct PDF manually.
 - **`CJIS-6.1` viewer URL:** `/view` serves an HTML viewer; the spider re-requests without `/view` to get the true PDF.
 - **`verify_bronze` header/raw off by one:** `CJIS-6.1.html` and `CJIS-6.1.pdf` share a stem, so the check allows `abs(raw − headers) <= 1`.
-- **A framework yields 0 chunks:** check `manifest.jsonl` for its `status` (`error` = WAF/timeout, `ok` but 0 chunks = filtered at extraction). Add filters in `build_silver.py` rather than mutating Bronze.
+- **A framework yields 0 chunks:** check `manifest.jsonl` for its `status` (`error` = WAF/timeout, `ok` but 0 chunks = served a shell or filtered at extraction). Prefer adding an authoritative `mirrors` entry in `sources.json` (an alternate surface that serves the text) over mutating Bronze or adding extraction filters.
 
 ---
 

@@ -61,6 +61,8 @@ A flat JSON array. This is the **single source of truth** and the only thing a h
 - `id` — the stable framework code, used everywhere downstream.
 - `url` — where to fetch it.
 - `public` — the ethical switch. `false` means *record it as skipped; never fetch it*.
+- `mirrors` — optional authoritative alternates, tried in order when `url` yields nothing usable
+  (WAF block, JS shell, timeout). Recovery is a config change, not a code change.
 
 Nothing else in the codebase contains a URL. The spider iterates this file; the pipeline initialises the Bronze manifest from the `public: false` entries before a single request is made.
 
@@ -100,9 +102,9 @@ write Parquet + silver_stats.json
 
 It is intentionally the *only* place extraction logic lives. Change chunking here and nothing else needs to know.
 
-### 5. Verification — `scripts/verify_bronze.py`, `scripts/verify_silver.py`
+### 5. Verification — `scripts/verify_bronze.py`, `scripts/verify_silver.py`, `scripts/verify_sources.py`
 
-Executable assertions, not vibes. `verify_bronze` checks that the manifest's `ok` count matches the files on disk (allowing the known CJIS html+pdf stem collision), that exactly 8 sources are skipped, and that at least 34 documents landed. `verify_silver` checks that the parquet exists and has a plausible row count. Both are wired into CI and the monthly release, so a broken run fails loudly instead of publishing quietly.
+Executable assertions, not vibes. `verify_bronze` checks that the manifest's `ok` count matches the files on disk (allowing the known CJIS html+pdf stem collision), that the skipped count matches the `public: false` entries in `sources.json`, and that at least one document landed per public source — all derived from the registry, no magic numbers. `verify_silver` checks that the parquet exists and has a plausible row count. `verify_sources` reports per-source acquisition health, surfacing sources that are `ok` yet yield zero chunks (JS shells / WAF pages) — the silent gaps a manifest alone hides. All are wired into CI and the monthly release, so a broken run fails loudly instead of publishing quietly.
 
 ---
 
