@@ -40,6 +40,7 @@ scripts/build_silver.py                 # trafilatura + PyMuPDF → 512/50 → d
 - **Dedup:** by `sha256` of the extracted text. `CJIS-6.1` html + pdf share a stem and are disambiguated via `seen_iid`.
 - **Section-aware chunking (opt-in):** `python scripts/build_silver.py --section-aware` splits on numbered headings (`Article 5`, `§ 164.312`, `AC-2`) when at least 3 are found, falling back to the fixed window otherwise. Default is unchanged.
 - **Quality report:** each run writes `data/silver/quality_report.json` — per-document flags (`short`, `table_heavy`, `fragmented`, `low_alpha`, `garbled`) so a flattened table isn't mistaken for prose.
+- **Document index:** `data/silver/index/<run_id>.json` records each document's extracted-text `sha256` — the low-noise signal `detect-drift` compares across runs (dynamic page chrome doesn't move it).
 - **Distribution:** `kind` = 1,236 pdf / 283 html. Largest stems: `CJIS-6.1` 466, `IRS-1075` 228, `SOX` 226, `CCPA-CPRA` 126, `EAR` 84, `FDA-AI-MD` 80.
 - **Empty (0 chunks):** `EU-AI-ACT`, `GDPR` (EUR-Lex JS shell), `CMMC`, `HIPAA`, `HHS-PART2`, `IL-AIVIA` (WAF/timeout), `BR-LGPD` (nav wrapper). See [Troubleshooting](#troubleshooting).
 
@@ -70,7 +71,7 @@ pixi run verify-silver
 | `verify-silver` | `python scripts/verify_silver.py` | Assert Silver exists with a plausible row count |
 | `verify-sources` | `python scripts/verify_sources.py` | Report per-source acquisition health (healthy / empty / error) |
 | `probe-gaps` | `python scripts/probe_gaps.py` | Re-probe the empty frameworks for usable text (used by the weekly gap watch) |
-| `detect-drift` | `python scripts/detect_drift.py` | Diff the newest Bronze run against the previous one by `sha256_raw` |
+| `detect-drift` | `python scripts/detect_drift.py` | Diff the newest Bronze run against the previous one (extracted-text hash; raw fallback) |
 | `build-changelog` | `python scripts/build_changelog.py` | Render a human-readable changelog (md + json) from the drift |
 | `verify` | all three verifiers | `verify-bronze && verify-silver && verify-sources` |
 | `pipeline` | all four, chained | End-to-end |

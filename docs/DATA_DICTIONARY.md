@@ -21,6 +21,7 @@ data/
 └── silver/
     ├── compliance_chunks.parquet         1,519 rows × 7 cols (the usable data)
     ├── balanced_slice.parquet            capped companion slice (≤30 chunks/framework)
+    ├── index/<run_id>.json               per-run extracted-text hashes (drift signal)
     ├── quality_report.json               per-document extraction-quality flags
     └── silver_stats.json                 one-line summary
 ```
@@ -252,6 +253,19 @@ nothing is dropped for them (dedup/short/WAF filtering happens before this).
 
 `flagged` is the count of documents with at least one flag. Provenance is unchanged — the
 `sha256` here is the same document hash used to group chunks.
+
+---
+
+## `data/silver/index/<run_id>.json`
+
+Per-run document index: `{run_id, docs: {framework_id: {sha256, chars, chunks}}}`, where
+`sha256` is the hash of the **extracted text** (same value as the parquet's `sha256` column,
+and the same `sha256` recorded in `quality_report.json`).
+
+It is the **low-noise drift signal**: `detect-drift` compares two runs' indexes so
+re-rendered chrome on a live page doesn't read as a content change. When a run has no index
+(older runs), drift falls back to the manifest's `sha256_raw`, which is noisier for
+dynamic HTML.
 
 ---
 

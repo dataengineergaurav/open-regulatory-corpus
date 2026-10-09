@@ -22,7 +22,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def render_markdown(report: dict, generated: str) -> str:
     lines = [f"# Corpus changelog — {report['current']}", "",
-             f"_vs `{report['previous']}` · generated {generated}_", ""]
+             f"_vs `{report['previous']}` · by {report.get('signal', 'raw')} hash · generated {generated}_", ""]
     if not (report["added"] or report["removed"] or report["changed"]):
         lines.append("No document-level changes since the previous run.")
         return "\n".join(lines).rstrip() + "\n"
@@ -55,8 +55,8 @@ def main() -> int:
         print(f"current={cur.name}: no previous run to compare against"); return 0
 
     generated = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    report = {"current": cur.name, "previous": prev.name, "generated": generated,
-              **dd.diff(dd.load(cur), dd.load(prev))}
+    d, signal = dd.compare(cur, prev)
+    report = {"current": cur.name, "previous": prev.name, "generated": generated, "signal": signal, **d}
     md = render_markdown(report, generated)
 
     out_dir = Path(args.out_dir)
