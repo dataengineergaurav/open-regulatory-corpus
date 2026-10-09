@@ -20,6 +20,7 @@ data/
 │       └── headers/<ID>.json             58 HTTP response records (Release asset)
 └── silver/
     ├── compliance_chunks.parquet         1,519 rows × 7 cols (the usable data)
+    ├── balanced_slice.parquet            capped companion slice (≤30 chunks/framework)
     └── silver_stats.json                 one-line summary
 ```
 
@@ -212,6 +213,18 @@ The product. **1,519 rows × 7 columns**, ~1.6 MiB, Parquet via Apache Arrow. Ev
 ```
 
 `run_id` records the path the build read from (here, via the `latest` symlink). `docs` is the count of unique extracted documents (equal to unique `sha256`).
+
+---
+
+## `data/silver/balanced_slice.parquet`
+
+A capped companion to `compliance_chunks.parquet` with the **same 7-column schema**. No
+framework contributes more than 30 chunks (seed 0), which pulls the three largest
+frameworks (`CJIS-6.1`, `IRS-1075`, `SOX` — most of the full corpus) down to about a fifth
+of it. Built deterministically by `scripts/build_balanced_slice.py`; the full corpus is
+left untouched. Use it whenever a blended metric must not be an implicit metric over CJIS.
+
+`data/silver/balanced_slice.json` records the cap, seed, and resulting counts.
 
 ---
 

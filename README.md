@@ -189,6 +189,7 @@ open-regulatory-corpus/
 │       └── settings.py           polite defaults: robots.txt, autothrottle, HTTP cache
 ├── scripts/
 │   ├── build_silver.py       Bronze → cleaned, deduped, chunked Parquet
+│   ├── build_balanced_slice.py  capped per-framework slice (counter the top-3 skew)
 │   ├── verify_bronze.py      asserts manifest/raw/header invariants
 │   ├── verify_silver.py      asserts Silver row count + schema
 │   ├── verify_sources.py     reports per-source acquisition health (gaps)
