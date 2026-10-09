@@ -121,7 +121,12 @@ Because the source documents aren't even. `CJIS-6.1`, `IRS-1075`, and `SOX` are 
 
 ### Are there embeddings / a vector index?
 
-Not yet. That's the planned **Gold** stage. Silver is deliberately the stopping point that needs no GPU, and Gold is designed to consume Silver without modifying it — see [ARCHITECTURE.md](ARCHITECTURE.md#add-a-new-stage-the-planned-gold).
+No — and embeddings are deliberately **not** a committed pipeline stage. Gold, the planned derived
+stage, is **model-free**: deterministic crosswalks, a framework index, and exact token counts, all
+built from Silver without modifying it. An embedding index is a *consumer* concern — the cookbook's
+RAG-ready slice is the shape to feed one. Keeping embeddings out of the pipeline means Gold stays
+reproducible and Silver keeps its rebuildable, no-GPU promise — see
+[ARCHITECTURE.md](ARCHITECTURE.md#add-a-new-stage-the-planned-gold).
 
 ---
 
@@ -140,7 +145,7 @@ Treat it as a bug. Docs are part of the product here; if a figure in the docs do
 Roughly, in order of value:
 
 1. **Recover the gaps** — replace or mirror the WAF-blocked, JS-shell, and wrapper sources so `GDPR`, `EU-AI-ACT`, `HIPAA`, `HHS-PART2`, `CMMC`, `IL-AIVIA`, and `BR-LGPD` yield real chunks.
-2. **Gold stage** — optional embeddings + a vector index built from Silver, kept as a separate, non-mutating stage.
+2. **Gold stage** — model-free, deterministic artifacts built from Silver (crosswalks, framework index, exact token counts); embeddings stay a consumer recipe, not a stage.
 3. **Exact token counts** — swap `token_est` for a real tokenizer where precision matters.
 4. **Automated drift detection** — diff `sha256_raw` across releases to flag documents that changed.
 

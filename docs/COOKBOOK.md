@@ -151,7 +151,7 @@ AI Governance           84
 
 ## 5 — Export a RAG-ready slice
 
-Produce a file an embedding job (the planned "Gold" stage) can consume directly.
+Produce a file an embedding job can consume directly (embeddings are a consumer concern, not a pipeline stage — see [Notes on embeddings](#notes-on-embeddings)).
 
 ```python
 from pathlib import Path
@@ -255,13 +255,13 @@ print(dup.groupby("stem").size().sort_values(ascending=False).head())
 
 ---
 
-## Notes for a future Gold stage
+## Notes on embeddings
 
-The slice from recipe 5 is exactly what a Gold stage consumes. The intended shape:
+Embeddings are a **consumer** concern, not a pipeline stage. The slice from recipe 5 is exactly what an embedding job should consume:
 
 ```
 Silver parquet  →  embed(text)  →  (vector, chunk_id, framework_id, source, sha256)
                                   →  FAISS / pgvector / whatever
 ```
 
-Non-negotiables carried forward from Silver into any vector store: `chunk_id`, `framework_id`, `source`, `sha256`. [ARCHITECTURE.md](ARCHITECTURE.md#add-a-new-stage-the-planned-gold) describes where that stage belongs and why it must not mutate Silver.
+Non-negotiables carried forward from Silver into any vector store: `chunk_id`, `framework_id`, `source`, `sha256`. Keeping embeddings outside the pipeline means Gold stays model-free and reproducible, and Silver keeps its rebuildable, no-GPU promise — see [ARCHITECTURE.md](ARCHITECTURE.md#add-a-new-stage-the-planned-gold).
