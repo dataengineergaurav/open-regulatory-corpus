@@ -1,0 +1,60 @@
+name: Gap recovery watch
+
+on:
+  schedule:
+    - cron: "17 6 * * 1" # Mondays ~06:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: prefix-dev/setup-pixi@v0.8.8
+        with:
+          pixi-version: v0.72.1
+          cache: true
+
+      - run: pixi install
+
+      - name: Probe open gaps
+        id: probe
+        run: |
+          pixi run python scripts/probe_gaps.py --json > probe.json 2>probe.err \
+            || echo '{"recovered": [], "results": []}' > probe.json
+          {
+            echo "### Gap recovery watch"
+            echo '```json'
+            cat probe.json
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          IDS=$(python -c "import json;print(','.join(r['id'] for r in json.load(open('probe.json'))['recovered']))" 2>/dev/null || echo "")
+          echo "recovered=$IDS" >> "$GITHUB_OUTPUT"
+          echo "recovered: ${IDS:-none}"
+
+      - name: Open an issue if a gap recovered
+        if: steps.probe.outputs.recovered != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          IDS: ${{ steps.probe.outputs.recovered }}
+        run: |
+          SEARCH=$(echo "$IDS" | tr ',' ' ')
+          EXISTING=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open \
+            --search "$SEARCH in:title" --json number --jq 'length')
+          if [ "$EXISTING" = "0" ]; then
+            gh issue create --repo "$GITHUB_REPOSITORY" \
+              --title "Gap recovery: $IDS now serving usable text" \
+              --label gap-recovery,roadmap \
+              --body "The weekly gap watch found these frameworks now serving usable text: **$IDS**.
+
+          Re-run the pipeline to recover them: \`pixi run pipeline run_id=$(date +%Y-%m-%d)\`.
+
+          Run summary: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          else
+            echo "an open issue already tracks: $IDS — no-op"
+          fi
