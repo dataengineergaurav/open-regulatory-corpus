@@ -23,6 +23,8 @@ jobs:
           if [ -d "data/bronze/latest/raw" ]; then pixi run python scripts/verify_bronze.py; else echo "skip bronze verify (raw not in git, see Release)"; fi
       - name: Check published surfaces are in sync
         run: pixi run check-docs
+      - name: Acquisition health (gaps are data, not failures)
+        run: pixi run verify-sources
       - name: Lint workflows
         run: |
           python -m py_compile scripts/*.py scraper/compliance_scraper/**/*.py 2>&1 | head -20; echo "py_compile OK"

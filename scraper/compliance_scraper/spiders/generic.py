@@ -2,11 +2,24 @@ import json, time
 from pathlib import Path
 import scrapy
 
+
 class GenericSpider(scrapy.Spider):
     name = "compliance"
+
     def __init__(self, run_id=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.run_id = run_id or time.strftime("%Y-%m-%d_%H%M")
+
+    def _source_urls(self, source):
+        """Primary URL first, then mirrors (deduped, eur-lex displayAll hint applied)."""
+        urls, seen = [], set()
+        for u in [source["url"], *source.get("mirrors", [])]:
+            if "eur-lex.europa.eu" in u and "?" not in u:
+                u = u.replace("/eng", "/eng?displayAll=true")
+            if u not in seen:
+                seen.add(u)
+                urls.append(u)
+        return urls
 
     def start_requests(self):
         repo_root = Path(__file__).resolve().parents[3]
@@ -14,17 +27,46 @@ class GenericSpider(scrapy.Spider):
         for s in sources:
             if not s["public"]:
                 continue
-            url = s["url"]
-            # eur-lex displayAll hint
-            if "eur-lex.europa.eu" in url and "?" not in url:
-                url = url.replace("/eng", "/eng?displayAll=true")
-            yield scrapy.Request(url, callback=self.parse, errback=self.err, meta={"id": s["id"], "orig_url": s["url"]}, dont_filter=True)
+            urls = self._source_urls(s)
+            yield scrapy.Request(
+                urls[0], callback=self.parse, errback=self.err,
+                meta={"id": s["id"], "orig_url": urls[0], "urls": urls, "try_index": 0},
+                dont_filter=True,
+            )
 
     async def start(self):
         for r in self.start_requests():
             yield r
 
+    def _looks_unusable(self, body):
+        """True for JS shells / WAF challenges / empty bodies, so a mirror gets a turn."""
+        if not body:
+            return True
+        if b"<html" in body[:2000].lower() and len(body) < 3000:
+            return True
+        text = body[:6000].decode(errors="ignore").lower()
+        markers = ("awswaf", "javascript is disabled", "enable javascript and then reload",
+                   "just a moment", "cf-browser-verification", "window.env")
+        return any(m in text for m in markers)
+
+    def _mirror_request(self, meta, index):
+        """Request the next mirror, or None when the list is exhausted."""
+        urls = meta.get("urls", [])
+        if index >= len(urls):
+            return None
+        return scrapy.Request(
+            urls[index], callback=self.parse, errback=self.err,
+            meta={**meta, "orig_url": urls[index], "try_index": index},
+            dont_filter=True,
+        )
+
     def parse(self, response):
+        # a shell/WAF primary hands off to its mirrors before being recorded
+        if self._looks_unusable(response.body):
+            nxt = self._mirror_request(response.meta, response.meta.get("try_index", 0) + 1)
+            if nxt is not None:
+                yield nxt
+                return
         headers = {k.decode() if isinstance(k, bytes) else k: (v[0].decode() if isinstance(v[0], bytes) else v[0]) for k, v in response.headers.items()}
         ct = headers.get("Content-Type", "")
         body = response.body
@@ -104,7 +146,11 @@ class GenericSpider(scrapy.Spider):
 
     def err(self, failure):
         req = failure.request
-        # log to manifest as error (append via pipeline? write directly)
+        # a failed fetch hands off to its mirrors before being recorded as an error
+        nxt = self._mirror_request(req.meta, req.meta.get("try_index", 0) + 1)
+        if nxt is not None:
+            yield nxt
+            return
         ts = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
         repo_root = Path(__file__).resolve().parents[3]
         base = repo_root / "data" / "bronze" / self.run_id

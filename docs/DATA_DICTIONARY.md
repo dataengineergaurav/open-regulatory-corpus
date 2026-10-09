@@ -34,15 +34,25 @@ The single source of truth. A flat JSON array; the only hand-edited file.
 | Field | Type | Required | Meaning |
 |---|---|---|---|
 | `id` | string | ✅ | Stable framework code. Upstream key for `framework_id` in Silver. Must be unique. |
-| `url` | string | ✅ | The URL to fetch. |
+| `url` | string | ✅ | The URL to fetch (the canonical source). |
 | `public` | boolean | ✅ | `true` = fetch it. `false` = paywalled/gated; record as skipped, **never request**. |
+| `mirrors` | string[] | ⬜ | Authoritative alternate URLs, tried in order when `url` yields nothing usable. Optional. |
 
 ```json
 {"id": "NIST-CSF2", "url": "https://nvlpubs.nist.gov/nistpubs/CSWP/NIST.CSWP.29.pdf", "public": true}
 {"id": "ISO-42001", "url": "https://www.iso.org/standard/42001", "public": false}
+{"id": "GDPR", "url": "https://eur-lex.europa.eu/eli/reg/2016/679/oj/eng", "public": true,
+ "mirrors": ["https://www.legislation.gov.uk/eur/2016/679/data.xht"]}
 ```
 
-Current contents: **46 entries = 38 public + 8 paywalled.**
+`mirrors` is the recovery mechanism for sources whose canonical URL is blocked or served as a
+JavaScript shell. The spider tries `url` first; if the response is empty, a shell, or a WAF
+challenge — or the request fails — it falls back through `mirrors` in order and records whichever
+URL produced the document. A mirror is an authoritative alternate for the **same framework** (a
+register view, an institutional document server, or the codified text, e.g. eCFR for a
+CFR-implemented rule); never an unofficial copy.
+
+Current contents: **46 entries = 38 public + 8 paywalled; 5 carry `mirrors`.**
 
 ---
 
