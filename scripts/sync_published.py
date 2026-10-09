@@ -22,6 +22,9 @@ import subprocess
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import corpus_stats as cs  # noqa: E402
+
 ROOT = Path(__file__).resolve().parents[1]
 GH_REPO = os.environ.get("GH_REPO", "dataengineergaurav/open-regulatory-corpus")
 HF_REPO = os.environ.get("HF_REPO_ID", "GauravGurjar/open-regulatory-corpus")
@@ -86,65 +89,44 @@ def compute_stats() -> dict:
     }
 
 
-def render_headline(s: dict) -> str:
-    return (
-        f"{s['sources_public']} public frameworks → {s['ok']} raw documents ({s['raw_mib']} MB) → "
-        f"**{s['chunks']:,}** citation-ready chunks across **{s['docs']}** documents"
-    )
+MARKER = re.compile(r"<!-- sync:([A-Za-z0-9_]+) -->(.*?)<!-- /sync:\1 -->", re.S)
 
 
-def render_stats(s: dict) -> str:
-    top = ", ".join(f"**{k}** ({v})" for k, v in s["top"])
-    return (
-        f"Measured from `data/silver/compliance_chunks.parquet` (run `{s['run_id']}`):\n\n"
-        f"- **{s['chunks']:,}** chunks across **{s['docs']}** documents, spanning "
-        f"**{s['frameworks_present']} of {s['sources_public']}** public frameworks\n"
-        f"- **~{s['tokens']:,}** estimated tokens of compliance text\n"
-        f"- **{s['chunk_pdf']:,}** PDF chunks / **{s['chunk_html']:,}** HTML chunks\n"
-        f"- **{s['median_words']}**-word median chunk length\n"
-        f"- Largest documents: {top}\n"
-        f"- Bronze: **{s['ok']}** raw files (**{s['raw_pdfs']}** PDF · **{s['raw_htmls']}** HTML, "
-        f"**{s['raw_mib']}** MB); manifest **{s['ok']}** ok · **{s['skipped']}** skipped · **{s['error']}** error"
-    )
+def resolve(name: str) -> str:
+    """Render a marker name: a renderer, else a scalar key; unknown names raise KeyError."""
+    if name in cs.RENDERERS:
+        return cs.RENDERERS[name]()
+    vals = cs.values()
+    if name in vals:
+        return vals[name]
+    raise KeyError(name)
 
 
-def _gap_cause(status: str) -> str:
-    return ("The server returned a non-200 response" if status == "error"
-            else "Served a shell / wrapper page (filtered at the Silver stage)")
+def sync_markers(text: str) -> tuple[str, list[str]]:
+    """Resolve every marker in `text`; return the new text and any unknown names."""
+    unknown: list[str] = []
+
+    def repl(m: re.Match) -> str:
+        name = m.group(1)
+        try:
+            value = resolve(name)
+        except KeyError:
+            unknown.append(name)
+            return m.group(0)
+        return f"<!-- sync:{name} -->{value}<!-- /sync:{name} -->"
+
+    return MARKER.sub(repl, text), unknown
 
 
-def render_gaps(s: dict) -> str:
-    groups: dict[str, list[str]] = {}
-    for g in sorted(s["gaps"], key=lambda g: (_gap_cause(g["status"]), g["id"])):
-        groups.setdefault(_gap_cause(g["status"]), []).append(g["id"])
-    rows = "\n".join(f"| {', '.join('`' + i + '`' for i in ids)} | {cause} |"
-                     for cause, ids in groups.items())
-    return (f"**{len(s['gaps'])}** of the {s['sources_public']} public frameworks currently produce "
-            f"**zero chunks**:\n\n| Framework | Why it's empty |\n|---|---|\n{rows}")
-
-
-REGIONS = {"headline": render_headline, "stats": render_stats, "gaps": render_gaps}
-
-
-def sync_regions(rel: str, regions: tuple[str, ...], stats: dict, check: bool) -> bool:
+def sync_markers_file(rel: str, check: bool) -> bool:
+    """Resolve the markers in one file; return True if it drifted or had unknown names."""
     text = _read(rel)
-    drifted = False
-    for name in regions:
-        render = REGIONS[name]
-        pattern = re.compile(
-            rf"<!-- sync:{name} -->\n.*?\n<!-- /sync:{name} -->", re.S
-        )
-        if not pattern.search(text):
-            print(f"  !! {rel}: missing <!-- sync:{name} --> marker")
-            drifted = True
-            continue
-        block = f"<!-- sync:{name} -->\n{render(stats)}\n<!-- /sync:{name} -->"
-        if pattern.search(text).group(0) != block:
-            drifted = True
-            if not check:
-                text = pattern.sub(lambda _: block, text, count=1)
+    new, unknown = sync_markers(text)
+    for name in unknown:
+        print(f"  !! {rel}: unknown marker name {name!r}")
+    drifted = new != text or bool(unknown)
     if drifted and not check:
-        (ROOT / rel).write_text(text)
+        (ROOT / rel).write_text(new)
     return drifted
 
 
@@ -218,14 +200,10 @@ def main() -> int:
     print(f"stats: {stats['chunks']:,} chunks · {stats['docs']} docs · "
           f"{stats['frameworks_present']}/{stats['sources_public']} frameworks · run {stats['run_id']}")
 
-    files = {
-        "README.md": ("headline", "stats", "gaps"),
-        "HF_DATASET_CARD.md": ("headline", "stats", "gaps"),
-        "docs/FAQ.md": ("gaps",),
-    }
+    docs = ("README.md", "HF_DATASET_CARD.md", "docs/FAQ.md")
     drift = False
-    for rel, regions in files.items():
-        d = sync_regions(rel, regions, stats, args.check)
+    for rel in docs:
+        d = sync_markers_file(rel, args.check)
         print(f"  {rel}: {'DRIFT' if d else 'ok'}")
         drift |= d
 
