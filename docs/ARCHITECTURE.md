@@ -25,7 +25,7 @@ The project follows the medallion (Bronze → Silver → Gold) pattern common in
         │   ───────          ──────              ──────       ────────  │
         │                                                              │
         │  sources.json  →   raw bytes     →   chunks      →  vectors  │
-        │  46 entries        57 files          2,041 rows      Gold     │
+        │  46 entries        raw files        derived rows     Gold     │
         │  38 public         + manifest        + parquet                │
         │  8 skipped         + headers         + stats                  │
         │                                                              │

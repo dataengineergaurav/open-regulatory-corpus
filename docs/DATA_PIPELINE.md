@@ -2,7 +2,7 @@
 
 The operational runbook. For *why* the stages exist and how the components fit, read [`ARCHITECTURE.md`](ARCHITECTURE.md). For field-level detail, see [`DATA_DICTIONARY.md`](DATA_DICTIONARY.md).
 
-**Status:** 38 public → Bronze 57 raw (25 PDFs + 32 HTML, 46 MB) → Silver 2,041 chunks (54 docs), run `2026-10-09` — WAF/nav filtered, deduped.
+**Status:** 38 public → Bronze <!-- sync:raw_files -->57<!-- /sync:raw_files --> raw (<!-- sync:raw_pdf -->25<!-- /sync:raw_pdf --> PDFs + <!-- sync:raw_html -->32<!-- /sync:raw_html --> HTML, <!-- sync:raw_mib -->46 MB<!-- /sync:raw_mib -->) → Silver <!-- sync:chunks -->2,041<!-- /sync:chunks --> chunks (<!-- sync:docs -->54<!-- /sync:docs --> docs), run `<!-- sync:run_id -->2026-10-09<!-- /sync:run_id -->` — WAF/nav filtered, deduped.
 **Deps:** `pixi.toml` — `scrapy>=2.18`, `trafilatura>=2.0`, `pymupdf>=1.28`, `datasets==2.20.0`.
 
 ---
@@ -13,9 +13,9 @@ The operational runbook. For *why* the stages exist and how the components fit, 
 
 ```
 data/bronze/<run_id>/
-  raw/<ID>.html | <ID>.pdf | <ID>_pdfN.pdf   # 57 files, 46 MB
+  raw/<ID>.html | <ID>.pdf | <ID>_pdfN.pdf   # verbatim raw files + headers
   headers/<ID>.json
-  manifest.jsonl                             # 68 lines: 57 ok + 8 skipped + 3 error
+  manifest.jsonl                             # one line per source: ok / skipped / error
   scrapy_stats.json
 data/bronze/latest -> <run_id>
 data/sources.json                            # 46: 38 public + 8 skipped (ISO×6 + SOC2 + PCI-DSS)
@@ -29,8 +29,8 @@ data/sources.json                            # 46: 38 public + 8 skipped (ISO×6
 ### Silver — cleaned + chunked
 
 ```
-data/silver/compliance_chunks.parquet   # 2,041 rows, ~2.0 MiB, 54 docs
-data/silver/silver_stats.json           # {run_id, chunks:2041, docs:54}
+data/silver/compliance_chunks.parquet   # the cleaned chunks
+data/silver/silver_stats.json           # {run_id, chunks, docs}
 scripts/build_silver.py                 # trafilatura + PyMuPDF → 512/50 → datasets.to_parquet()
 ```
 
@@ -42,7 +42,7 @@ scripts/build_silver.py                 # trafilatura + PyMuPDF → 512/50 → d
 - **Quality report:** each run writes `data/silver/quality_report.json` — per-document flags (`short`, `table_heavy`, `fragmented`, `low_alpha`, `garbled`) so a flattened table isn't mistaken for prose.
 - **Document index:** `data/silver/index/<run_id>.json` records each document's extracted-text `sha256` — the low-noise signal `detect-drift` compares across runs (dynamic page chrome doesn't move it).
 - **Balanced slice:** `build-balanced` writes `data/silver/balanced_slice.parquet` (capped per framework).
-- **Distribution:** `kind` = 1,292 pdf / 749 html. Largest stems: `CJIS-6.1` 464, `IRS-1075` 228, `SOX` 226, `GDPR` 163.
+- **Distribution:** `kind` = <!-- sync:chunk_pdf -->1,292<!-- /sync:chunk_pdf --> pdf / <!-- sync:chunk_html -->749<!-- /sync:chunk_html --> html. Largest stems: `CJIS-6.1`, `IRS-1075`, `SOX`, `GDPR` (counts in `data/stats/top_documents.csv`).
 - **Empty (0 chunks):** `NYDFS-500`, `ECOA-REG-B`, `NAIC-AI` (non-200), `SG-MODEL-AI` (WAF challenge), `BR-LGPD` (nav wrapper). See [Troubleshooting](#troubleshooting).
 
 ---
@@ -108,7 +108,7 @@ pixi run sync-published    # rewrite regions + update GitHub About + push HF car
 ## PDF inventory
 
 - **Direct PDFs:** NIST-CSF2, OMB-M25-21/22, CJIS-6.1 (`/view` → true PDF).
-- **True PDFs on disk (25 of 57 raw files):** the direct ones plus secondary `_pdfN` documents. `BR-LGPD.pdf` is an HTML wrapper (the true PDF was not landed).
+- **True PDFs on disk (<!-- sync:raw_pdf -->25<!-- /sync:raw_pdf --> of <!-- sync:raw_files -->57<!-- /sync:raw_files --> raw files):** the direct ones plus secondary `_pdfN` documents. `BR-LGPD.pdf` is an HTML wrapper (the true PDF was not landed).
 
 ---
 

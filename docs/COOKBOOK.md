@@ -28,7 +28,6 @@ else:
 df["stem"] = df.framework_id.str.split("_pdf").str[0]
 print(f"{len(df)} chunks · {df.framework_id.nunique()} framework_ids · "
       f"{df.stem.nunique()} frameworks · {df.sha256.nunique()} docs")
-# 2041 chunks · 54 framework_ids · 33 frameworks · 54 docs
 ```
 
 ---
@@ -39,7 +38,7 @@ The fastest path to a corpus slice.
 
 ```python
 # One framework, primary document only
-fda = df[df.framework_id == "FDA-AI-MD"]                    # 85 chunks
+fda = df[df.framework_id == "FDA-AI-MD"]
 
 # All documents for a framework (primary + secondary PDFs), via stem
 sox = df[df.stem == "SOX"]                                  # 226 chunks
@@ -60,10 +59,10 @@ DOMAINS = {
 def domain_slice(name):
     return df[df.stem.isin(DOMAINS[name])]
 
-print(domain_slice("Privacy & Data").shape)   # (382, 8)
+print(domain_slice("Privacy & Data").shape)
 ```
 
-> Remember: `NYDFS-500`, `ECOA-REG-B`, `NAIC-AI`, `SG-MODEL-AI`, `BR-LGPD` are in these lists but currently yield **0 chunks**. Filtering is honest — you get what actually landed, nothing fabricated. See [`FAQ.md`](FAQ.md#why-are-some-frameworks-empty).
+> Remember: some tracked frameworks currently yield **0 chunks** — the live list is in [`FAQ.md`](FAQ.md#why-are-some-frameworks-empty) and `data/stats/gaps.csv`. Filtering is honest — you get what actually landed, nothing fabricated.
 
 ---
 
@@ -139,13 +138,7 @@ print("only SOX:", sorted(b - a)[:10])
 
 ## Domain sizes (current run)
 
-```
-Cybersecurity          804 chunks   ← CJIS-6.1 dominates
-Privacy & Data         382
-Health/Access/Trade    368
-Financial              255
-AI Governance          232
-```
+Per-domain chunk counts live in `data/stats/domains.csv`; Cybersecurity is largest (`CJIS-6.1` dominates), then Privacy & Data, Health/Access/Trade, Financial, and AI Governance.
 
 ---
 
@@ -204,12 +197,11 @@ print(provenance(df[df.chunk_id == "SOX_pdf1-113"].iloc[0]))
 The gaps are data. Compute them so you can see a framework return release over release.
 
 ```python
-expected = {f for members in DOMAINS.values() for f in members}          # 38
-present  = set(df.stem.unique())                                         # 33
+expected = {f for members in DOMAINS.values() for f in members}
+present  = set(df.stem.unique())
 missing  = sorted(expected - present)
 print(f"expected {len(expected)}, present {len(present)}, missing {len(missing)}")
 print(missing)
-# ['BR-LGPD','ECOA-REG-B','NAIC-AI','NYDFS-500','SG-MODEL-AI']
 ```
 
 Run this against each new month's parquet and log `missing`. A shrinking set is the definition of progress on this project. `pixi run verify-sources` and the weekly gap watch do this for you.
@@ -218,7 +210,7 @@ Run this against each new month's parquet and log `missing`. A shrinking set is 
 
 ## 8 — Sample fairly (why you should care about the top 3)
 
-The distribution is extremely skewed: `CJIS-6.1`, `IRS-1075`, and `SOX` together are **~45% of all chunks**. If you train or evaluate on the raw corpus, those three frameworks will dominate.
+The distribution is extremely skewed: `CJIS-6.1`, `IRS-1075`, and `SOX` together are **<!-- sync:top3_share -->~45%<!-- /sync:top3_share --> of all chunks**. If you train or evaluate on the raw corpus, those three frameworks will dominate.
 
 ```python
 # Naive: skewed
@@ -231,7 +223,7 @@ balanced = (df.groupby("stem", group_keys=False)
 print(f"{len(balanced)} chunks, max {balanced.stem.value_counts().max()} per framework")
 ```
 
-**A balanced slice ships with the data.** `data/silver/balanced_slice.parquet` is this recipe already applied (cap 30, seed 0): 595 chunks, ≤30 per framework, so the big three fall from ~45% of the corpus to ~15% of the slice. Build it yourself with `python scripts/build_balanced_slice.py --cap 30`.
+**A balanced slice ships with the data.** `data/silver/balanced_slice.parquet` is this recipe already applied (cap 30, seed 0): ≤30 chunks per framework, so the big three fall from <!-- sync:top3_share -->~45%<!-- /sync:top3_share --> of the corpus to a small, bounded share of the slice. Build it yourself with `python scripts/build_balanced_slice.py --cap 30`.
 
 For retrieval evaluation, always report per-framework metrics, not a single blended number — a corpus-wide average is really an average over CJIS.
 

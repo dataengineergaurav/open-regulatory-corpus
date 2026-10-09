@@ -200,7 +200,8 @@ def main() -> int:
     print(f"stats: {stats['chunks']:,} chunks · {stats['docs']} docs · "
           f"{stats['frameworks_present']}/{stats['sources_public']} frameworks · run {stats['run_id']}")
 
-    docs = ("README.md", "HF_DATASET_CARD.md", "docs/FAQ.md")
+    docs = ("README.md", "HF_DATASET_CARD.md", "docs/FAQ.md", "docs/DATA_DICTIONARY.md",
+            "docs/DATA_PIPELINE.md", "docs/COOKBOOK.md", "docs/ARCHITECTURE.md")
     drift = False
     for rel in docs:
         d = sync_markers_file(rel, args.check)

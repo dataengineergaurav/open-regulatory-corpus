@@ -2,7 +2,7 @@
 
 Every artifact this project produces, and every field inside it. If you only read one reference page, make it this one.
 
-All examples are taken verbatim from the current run (`2026-10-09`).
+All examples are taken verbatim from the current run (`<!-- sync:run_id -->2026-10-09<!-- /sync:run_id -->`).
 
 ---
 
@@ -12,21 +12,21 @@ All examples are taken verbatim from the current run (`2026-10-09`).
 data/
 ├── sources.json                          the curated input (46 entries)
 ├── bronze/
-│   ├── latest -> 2026-10-09              symlink to newest run
-│   └── 2026-10-09/
-│       ├── manifest.jsonl                68 lines: what happened to each source
+│   ├── latest -> <run_id>                symlink to newest run
+│   └── <run_id>/
+│       ├── manifest.jsonl                one line per source
 │       ├── scrapy_stats.json             crawl telemetry
-│       ├── raw/<ID>.<ext>                57 verbatim files (Release asset)
-│       └── headers/<ID>.json             56 HTTP response records (Release asset)
+│       ├── raw/<ID>.<ext>                verbatim files (Release asset)
+│       └── headers/<ID>.json             HTTP response records (Release asset)
 └── silver/
-    ├── compliance_chunks.parquet         2,041 rows × 7 cols (the usable data)
+    ├── compliance_chunks.parquet         the usable data (7 cols)
     ├── balanced_slice.parquet            capped companion slice (≤30 chunks/framework)
     ├── index/<run_id>.json               per-run extracted-text hashes (drift signal)
     ├── quality_report.json               per-document extraction-quality flags
     └── silver_stats.json                 one-line summary
 ```
 
-> `raw/` and `headers/` are `.gitignore`d — they are ~46 MB per run and live as GitHub Release assets. The parquet, manifest, and stats stay in git.
+> `raw/` and `headers/` are `.gitignore`d — they are <!-- sync:raw_mib -->46 MB<!-- /sync:raw_mib --> per run and live as GitHub Release assets. The parquet, manifest, and stats stay in git.
 
 ---
 
@@ -74,7 +74,7 @@ This matters for filtering: `df.framework_id == "SOX"` gets only the primary doc
 df["stem"] = df.framework_id.str.split("_pdf").str[0]
 ```
 
-**Present in Silver:** 33 stems across 54 `framework_id` values.
+**Present in Silver:** <!-- sync:frameworks_present -->33<!-- /sync:frameworks_present --> stems across <!-- sync:docs -->54<!-- /sync:docs --> `framework_id` values.
 
 ---
 
@@ -84,7 +84,7 @@ One JSON object per line. It is **append-ordered but not strictly chronological*
 
 There are exactly **three line shapes**, distinguished by `status`:
 
-### Shape 1 — `ok` (57 lines)
+### Shape 1 — `ok` (<!-- sync:manifest_ok -->57<!-- /sync:manifest_ok --> lines)
 
 ```json
 {"id": "NIST-CSF2", "url": "https://nvlpubs.nist.gov/nistpubs/CSWP/NIST.CSWP.29.pdf",
@@ -109,7 +109,7 @@ There are exactly **three line shapes**, distinguished by `status`:
 
 No `request` was ever sent. This is the ethical record of a deliberate omission.
 
-### Shape 3 — `error` (3 lines)
+### Shape 3 — `error` (<!-- sync:manifest_error -->3<!-- /sync:manifest_error --> lines)
 
 ```json
 {"id": "NYDFS-500", "url": "https://www.dfs.ny.gov/industry_guidance/cybersecurity",
@@ -124,18 +124,17 @@ No `request` was ever sent. This is the ethical record of a deliberate omission.
 
 | Status | Count | Interpretation |
 |---|---|---|
-| `ok` | 57 | Landed raw bytes |
-| `skipped_public_only` | 8 | Deliberately not fetched |
-| `error` | 3 | Attempted and failed (non-200 / WAF) |
-| **Total** | **68** | |
+| `ok` | <!-- sync:manifest_ok -->57<!-- /sync:manifest_ok --> | Landed raw bytes |
+| `skipped_public_only` | <!-- sync:manifest_skipped -->8<!-- /sync:manifest_skipped --> | Deliberately not fetched |
+| `error` | <!-- sync:manifest_error -->3<!-- /sync:manifest_error --> | Attempted and failed (non-200 / WAF) |
 
-> `ok` (57) matches the 57 files in `raw/`. Headers may total one fewer; the one historical collision is `CJIS-6.1`, which lands as both `.html` and `.pdf` from a shared stem.
+> `ok` (<!-- sync:manifest_ok -->57<!-- /sync:manifest_ok -->) matches the files in `raw/`. Headers may total one fewer; the one historical collision is `CJIS-6.1`, which lands as both `.html` and `.pdf` from a shared stem.
 
 ---
 
 ## `data/bronze/<run_id>/raw/`
 
-57 files, named `<ID><ext>`. The extension is chosen by **magic bytes first**, then content type, then URL — in that order — so the extension always reflects the true format:
+<!-- sync:raw_files -->57<!-- /sync:raw_files --> files, named `<ID><ext>`. The extension is chosen by **magic bytes first**, then content type, then URL — in that order — so the extension always reflects the true format:
 
 - starts with `%PDF` → `.pdf`
 - `Content-Type` contains `pdf` → `.pdf`
@@ -184,7 +183,7 @@ The count is higher than 46 because the crawl follows robots.txt, PDF links, ret
 
 ## `data/silver/compliance_chunks.parquet`
 
-The product. **2,041 rows × 7 columns**, ~2.0 MiB, Parquet via Apache Arrow. Every column is provenance-bearing.
+The product. **<!-- sync:chunks -->2,041<!-- /sync:chunks --> rows × 7 columns**, ~2.0 MiB, Parquet via Apache Arrow. Every column is provenance-bearing.
 
 | # | Column | Type | Null? | Example | Notes |
 |---|---|---|---|---|---|
@@ -196,7 +195,7 @@ The product. **2,041 rows × 7 columns**, ~2.0 MiB, Parquet via Apache Arrow. Ev
 | 6 | `token_est` | float | no | `510.72` | `len(text.split()) * 1.33` |
 | 7 | `sha256` | string | no | `4ebc14c5459f…` | Hash of the **extracted document text**; all chunks of a doc share it |
 
-**Distribution (current run):** `kind` = 1,292 pdf / 749 html. 54 unique `sha256` (documents). 54 unique `framework_id`. 33 unique stems.
+**Distribution (current run):** `kind` = <!-- sync:chunk_pdf -->1,292<!-- /sync:chunk_pdf --> pdf / <!-- sync:chunk_html -->749<!-- /sync:chunk_html --> html. <!-- sync:docs -->54<!-- /sync:docs --> unique `sha256` (documents). <!-- sync:docs -->54<!-- /sync:docs --> unique `framework_id`. <!-- sync:frameworks_present -->33<!-- /sync:frameworks_present --> unique stems.
 
 **Chunk sizing:** 512-token window with 50-token overlap, approximated as 384 words with 38-word overlap, minimum 50 words per chunk. Median chunk = 384 words ≈ 510.7 estimated tokens.
 
