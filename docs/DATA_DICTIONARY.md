@@ -21,6 +21,7 @@ data/
 └── silver/
     ├── compliance_chunks.parquet         1,519 rows × 7 cols (the usable data)
     ├── balanced_slice.parquet            capped companion slice (≤30 chunks/framework)
+    ├── quality_report.json               per-document extraction-quality flags
     └── silver_stats.json                 one-line summary
 ```
 
@@ -225,6 +226,30 @@ of it. Built deterministically by `scripts/build_balanced_slice.py`; the full co
 left untouched. Use it whenever a blended metric must not be an implicit metric over CJIS.
 
 `data/silver/balanced_slice.json` records the cap, seed, and resulting counts.
+
+---
+
+## `data/silver/quality_report.json`
+
+Per-document extraction-quality flags, written by `build_silver.py`. Flags **annotate**;
+nothing is dropped for them (dedup/short/WAF filtering happens before this).
+
+```json
+{"run_id": "…", "section_aware": false, "docs": 54, "flagged": 12,
+ "entries": [{"framework_id": "CJIS-6.1", "kind": "pdf", "sha256": "…",
+              "chars": 812345, "chunks": 466, "flags": ["table_heavy"]}]}
+```
+
+| Flag | Meaning |
+|---|---|
+| `short` | extracted text < 500 chars |
+| `table_heavy` | > 25% of lines look tabular (2+ internal spaces) — a PDF table flattened by text extraction |
+| `fragmented` | > 40% of lines are < 3 chars |
+| `low_alpha` | < 55% of characters are letters (number/symbol soup) |
+| `garbled` | replacement chars (`�`) or many `(cid:` glyphs |
+
+`flagged` is the count of documents with at least one flag. Provenance is unchanged — the
+`sha256` here is the same document hash used to group chunks.
 
 ---
 
