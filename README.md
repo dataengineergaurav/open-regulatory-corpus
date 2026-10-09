@@ -2,9 +2,7 @@
 
 **A public-only, machine-readable corpus of the rules that govern AI, privacy, cybersecurity, finance, and health care — scraped, cleaned, chunked, and shipped every month.**
 
-<!-- sync:headline -->
-38 public frameworks → 57 raw documents (46 MB) → **2,041** citation-ready chunks across **54** documents
-<!-- /sync:headline -->
+<!-- sync:headline -->38 public frameworks → 57 raw documents (46 MB) → **2,041** citation-ready chunks across **54** documents<!-- /sync:headline -->
 
 Drop them into a RAG pipeline, a spreadsheet, or a research notebook — no crawler required to consume it.
 
@@ -30,7 +28,7 @@ Three ways in, from zero-effort to fully reproducible.
 ```python
 from datasets import load_dataset
 ds = load_dataset("GauravGurjar/open-regulatory-corpus")["train"]
-fda = ds.filter(lambda x: x["framework_id"] == "FDA-AI-MD")   # 85 chunks
+fda = ds.filter(lambda x: x["framework_id"] == "FDA-AI-MD")
 ```
 
 **2. Download a release (no account, no crawler):**
@@ -38,7 +36,7 @@ fda = ds.filter(lambda x: x["framework_id"] == "FDA-AI-MD")   # 85 chunks
 # Silver only — the cleaned chunks (~2.0 MiB)
 curl -L -O https://github.com/dataengineergaurav/open-regulatory-corpus/releases/latest/download/open-regulatory-silver-*.parquet
 
-# Or the full Bronze landing zone (~46 MB of raw PDFs + HTML + headers)
+# Or the full Bronze landing zone (raw PDFs + HTML + headers)
 curl -L -O https://github.com/dataengineergaurav/open-regulatory-corpus/releases/latest/download/open-regulatory-bronze-*.tar.gz
 ```
 Every release ships a `SHA256SUMS` file alongside the artifacts.
@@ -49,7 +47,7 @@ pixi install
 RUN_ID=2026-09-01 pixi run pipeline
 # crawl → verify-bronze → build-silver → verify-silver
 ```
-Artifacts land in `data/bronze/<run_id>/raw/` (57 files) and `data/silver/compliance_chunks.parquet`.
+Artifacts land in `data/bronze/<run_id>/raw/` (<!-- sync:raw_files -->57<!-- /sync:raw_files --> files) and `data/silver/compliance_chunks.parquet`.
 
 ---
 
@@ -75,14 +73,12 @@ Artifacts land in `data/bronze/<run_id>/raw/` (57 files) and `data/silver/compli
 
 Data work is mostly about what *didn't* land, and pretending otherwise makes a corpus untrustworthy.
 
-<!-- sync:gaps -->
-**5** of the 38 public frameworks currently produce **zero chunks**:
+<!-- sync:gaps_table -->**5** of the 38 public frameworks currently produce **zero chunks**:
 
 | Framework | Why it's empty |
 |---|---|
 | `BR-LGPD`, `SG-MODEL-AI` | Served a shell / wrapper page (filtered at the Silver stage) |
-| `ECOA-REG-B`, `NAIC-AI`, `NYDFS-500` | The server returned a non-200 response |
-<!-- /sync:gaps -->
+| `ECOA-REG-B`, `NAIC-AI`, `NYDFS-500` | The server returned a non-200 response |<!-- /sync:gaps_table -->
 
 `SG-MODEL-AI` and `BR-LGPD` land as raw bytes but extract to noise — a WAF challenge and navigation chrome respectively — and are dropped at the Silver stage. The full remediation playbook lives in [`docs/DATA_PIPELINE.md`](docs/DATA_PIPELINE.md#troubleshooting). **Gaps are tracked as data, not hidden** — the missing set is watched weekly and recovering one is a measurable win release-over-release.
 
@@ -99,14 +95,14 @@ A classic **medallion** architecture: raw bytes first, trust and structure later
         ▼                                      │  magic-byte extension detection
   ┌─────────────┐                          ┌────┴─────┐
   │   SOURCES   │────── crawl ────────────▶│  BRONZE  │  verbatim bytes + manifest
-  └─────────────┘                          └────┬─────┘  57 files · 46 MB
+  └─────────────┘                          └────┬─────┘  raw bytes + manifest
         │                                       │
         │                                       │  trafilatura (HTML) + PyMuPDF (PDF)
         │                                       │  dedup by sha256 · chunk 512 / 50
         │                                       ▼
         │                                  ┌───────────┐
         │                                  │  SILVER   │  compliance_chunks.parquet
-        │                                  └─────┬─────┘  2,041 chunks · 54 docs
+        │                                  └─────┬─────┘  citation-ready chunks
         │                                        │
         ▼                                        ▼
    monthly GitHub Release  ◀────────── publish ──────────▶  Hugging Face dataset
@@ -141,18 +137,16 @@ Full field-by-field reference: [`docs/DATA_DICTIONARY.md`](docs/DATA_DICTIONARY.
 
 ## By the numbers
 
-<!-- sync:stats -->
-Measured from `data/silver/compliance_chunks.parquet` (run `2026-10-09`):
+<!-- sync:stats_bullets -->Measured from `data/silver/compliance_chunks.parquet` (run `2026-10-09`):
 
 - **2,041** chunks across **54** documents, spanning **33 of 38** public frameworks
 - **~1,029,983** estimated tokens of compliance text
 - **1,292** PDF chunks / **749** HTML chunks
 - **384**-word median chunk length
 - Largest documents: **CJIS-6.1** (464), **IRS-1075** (228), **SOX** (226), **GDPR** (163)
-- Bronze: **57** raw files (**25** PDF · **32** HTML, **46** MB); manifest **57** ok · **8** skipped · **3** error
-<!-- /sync:stats -->
+- Bronze: **57** raw files (**25** PDF · **32** HTML, **46 MB**); manifest **57** ok · **8** skipped · **3** error<!-- /sync:stats_bullets -->
 
-> The top three documents are ~45% of all chunks. That's a real characteristic of regulatory text (CJIS and IRS-1075 are enormous), and something to weight for when sampling. A capped companion slice ships for exactly this reason.
+> The top three documents are <!-- sync:top3_share -->~45%<!-- /sync:top3_share --> of all chunks. That's a real characteristic of regulatory text (CJIS and IRS-1075 are enormous), and something to weight for when sampling. A capped companion slice ships for exactly this reason.
 
 ---
 
@@ -218,7 +212,7 @@ open-regulatory-corpus/
 
 ## How it stays fresh
 
-A scheduled GitHub Action runs on the **1st of every month**: it crawls, verifies Bronze, builds and verifies Silver, packages the artifacts, cuts a GitHub Release with a `SHA256SUMS`, and publishes to Hugging Face. Every run is identified by a `run_id` (e.g. `2026-10-09`), and Bronze keeps every run side-by-side, so history is never overwritten.
+A scheduled GitHub Action runs on the **1st of every month**: it crawls, verifies Bronze, builds and verifies Silver, packages the artifacts, cuts a GitHub Release with a `SHA256SUMS`, and publishes to Hugging Face. Every run is identified by a `run_id` (e.g. `<!-- sync:run_id -->2026-10-09<!-- /sync:run_id -->`), and Bronze keeps every run side-by-side, so history is never overwritten.
 
 Each release also ships a **changelog** (`changelog-<run_id>.md`) listing the documents added, changed, or removed since the previous run — detected by diffing **extracted-text** hashes, so a framework that was revised in place shows up even without a version bump, while re-rendered page chrome does not. See [Releases](https://github.com/dataengineergaurav/open-regulatory-corpus/releases).
 

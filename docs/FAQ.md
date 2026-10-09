@@ -16,7 +16,7 @@ The questions people actually ask, answered plainly — including the uncomforta
 
 ### What is this project, in one paragraph?
 
-A pipeline that fetches 38 public regulatory and compliance frameworks, stores the raw documents untouched, and derives a clean, chunked, provenance-tagged Parquet file (~2,041 rows) that's ready to drop into a RAG system, a research notebook, or a dataset. It re-runs monthly and publishes to GitHub Releases and Hugging Face.
+A pipeline that fetches 38 public regulatory and compliance frameworks, stores the raw documents untouched, and derives a clean, chunked, provenance-tagged Parquet file (<!-- sync:chunks -->2,041<!-- /sync:chunks --> rows) that's ready to drop into a RAG system, a research notebook, or a dataset. It re-runs monthly and publishes to GitHub Releases and Hugging Face.
 
 ### Who is it for?
 
@@ -30,7 +30,7 @@ A pipeline that fetches 38 public regulatory and compliance frameworks, stores t
 
 ### How often is it updated?
 
-Monthly. A scheduled GitHub Action runs on the 1st of each month, and each run gets a `run_id` (e.g. `2026-10-09`). Bronze keeps every run side-by-side, so nothing is overwritten and you can always see what changed.
+Monthly. A scheduled GitHub Action runs on the 1st of each month, and each run gets a `run_id` (e.g. `<!-- sync:run_id -->2026-10-09<!-- /sync:run_id -->`). Bronze keeps every run side-by-side, so nothing is overwritten and you can always see what changed.
 
 ---
 
@@ -38,14 +38,12 @@ Monthly. A scheduled GitHub Action runs on the 1st of each month, and each run g
 
 ### Why are some frameworks empty?
 
-<!-- sync:gaps -->
-**5** of the 38 public frameworks currently produce **zero chunks**:
+<!-- sync:gaps_table -->**5** of the 38 public frameworks currently produce **zero chunks**:
 
 | Framework | Why it's empty |
 |---|---|
 | `BR-LGPD`, `SG-MODEL-AI` | Served a shell / wrapper page (filtered at the Silver stage) |
-| `ECOA-REG-B`, `NAIC-AI`, `NYDFS-500` | The server returned a non-200 response |
-<!-- /sync:gaps -->
+| `ECOA-REG-B`, `NAIC-AI`, `NYDFS-500` | The server returned a non-200 response |<!-- /sync:gaps_table -->
 
 Two of these land raw bytes in Bronze and then extract to noise — `SG-MODEL-AI` (a WAF challenge) and `BR-LGPD` (navigation chrome) — which the Silver stage filters out. The remediation notes are in [`DATA_PIPELINE.md`](DATA_PIPELINE.md#troubleshooting).
 
@@ -117,7 +115,7 @@ Because it removes a heavy dependency and lets the whole thing run in Colab with
 
 ### Why doesn't the distribution look even across frameworks?
 
-Because the source documents aren't even. `CJIS-6.1`, `IRS-1075`, and `SOX` are enormous and together are ~45% of all chunks. If you sample or train naively, those three will dominate — the [cookbook](COOKBOOK.md#8--sample-fairly-why-you-should-care-about-the-top-3) has a balancing recipe, and a capped `balanced_slice.parquet` ships with each release.
+Because the source documents aren't even. `CJIS-6.1`, `IRS-1075`, and `SOX` are enormous and together are <!-- sync:top3_share -->~45%<!-- /sync:top3_share --> of all chunks. If you sample or train naively, those three will dominate — the [cookbook](COOKBOOK.md#8--sample-fairly-why-you-should-care-about-the-top-3) has a balancing recipe, and a capped `balanced_slice.parquet` ships with each release.
 
 ### Are there embeddings / a vector index?
 
