@@ -15,7 +15,7 @@ build-balanced = { cmd = "python scripts/build_balanced_slice.py", description =
 verify-silver = { cmd = "python scripts/verify_silver.py", description = "Verify Silver" }
 verify-sources = { cmd = "python scripts/verify_sources.py", description = "Report per-source acquisition health (gaps)" }
 probe-gaps = { cmd = "python scripts/probe_gaps.py", description = "Probe empty frameworks for usable text" }
-detect-drift = { cmd = "python scripts/detect_drift.py", description = "Diff the newest Bronze run against the previous one (drift report)" }
+detect-drift = { cmd = "python scripts/detect_drift.py", description = "Diff the newest Bronze run against the previous one (extracted-text hashes)" }
 build-changelog = { cmd = "python scripts/build_changelog.py", description = "Render a changelog from Bronze drift" }
 verify = { cmd = "python scripts/verify_bronze.py && python scripts/verify_silver.py && python scripts/verify_sources.py", description = "Verify Bronze+Silver + per-source acquisition health" }
 check-docs = { cmd = "python scripts/sync_published.py --check --no-about --no-hf", description = "Fail if README/HF card numbers drift from artifacts" }

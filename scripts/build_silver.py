@@ -44,6 +44,7 @@ def main(run_id=None, section_aware=False):
     raw_dir = bronze / "raw"
     rows = []
     quality = []
+    index = {}
     seen_hash = set()
     seen_iid = {}  # stem -> count for collision (CJIS html+pdf same stem)
     for p in sorted(raw_dir.glob("*")):
@@ -91,6 +92,7 @@ def main(run_id=None, section_aware=False):
             "chars": len(text), "chunks": len(chunks),
             "flags": su.quality_flags(text, kind),
         })
+        index[iid] = {"sha256": h, "chars": len(text), "chunks": len(chunks)}
         for idx, c in enumerate(chunks):
             rows.append({"framework_id": iid, "chunk_id": f"{iid}-{idx}", "text": c, "source": str(p), "kind": kind, "token_est": len(c.split())*1.33, "sha256": h})
     print(f"chunks: {len(rows)} from {len(seen_hash)} docs")
@@ -103,6 +105,11 @@ def main(run_id=None, section_aware=False):
     print(f"Wrote {out/'compliance_chunks.parquet'} ({len(rows)} rows)")
     # write manifest summary
     (out / "silver_stats.json").write_text(json.dumps({"run_id": str(bronze), "chunks": len(rows), "docs": len(seen_hash)}, indent=2))
+    # per-run document index (id -> extracted-text hash) — the low-noise drift signal
+    run_name = bronze.resolve().name
+    idx_dir = out / "index"
+    idx_dir.mkdir(parents=True, exist_ok=True)
+    (idx_dir / f"{run_name}.json").write_text(json.dumps({"run_id": run_name, "docs": index}, indent=2))
     # extraction-quality side report (flags only annotate; nothing is dropped here)
     (out / "quality_report.json").write_text(json.dumps({
         "run_id": str(bronze),

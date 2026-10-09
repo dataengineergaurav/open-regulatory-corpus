@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Drift detection: compare one Bronze run's documents against another, by raw hash.
+"""Drift detection: compare one Bronze run's documents against another.
 
-Reads two `manifest.jsonl` files and reports which documents were added, removed, or
-changed (same id, different `sha256_raw`). Purely offline — it diffs manifests, never
-re-fetches. This is the signal the corpus otherwise loses: a document that changed
-without a version bump re-ingests silently.
+By default it diffs the **extracted-text** hashes (`data/silver/index/<run>.json`,
+written by build_silver) — a stable signal that ignores dynamic-page chrome. When a run
+has no index, it falls back to the raw manifest hashes (`sha256_raw`), which is noisier
+for live HTML. Offline — it never re-fetches.
 
 Usage:
   python scripts/detect_drift.py                    # newest run vs the one before it
@@ -21,24 +21,31 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 BRONZE = ROOT / "data/bronze"
+INDEX_DIR = ROOT / "data/silver/index"
 
 
 def runs() -> list[Path]:
     return sorted(p for p in BRONZE.glob("20*") if (p / "manifest.jsonl").exists())
 
 
-def load(run: Path) -> dict[str, dict]:
+def _load_manifest(run: Path) -> dict[str, dict]:
+    """id -> sha256_raw, for every `ok` document in the run's manifest."""
     rows = [json.loads(l) for l in (run / "manifest.jsonl").read_text().splitlines() if l.strip()]
-    docs: dict[str, dict] = {}
-    for r in rows:
-        if r.get("status") != "ok":
-            continue
-        docs[str(r.get("id"))] = {
-            "sha256": r.get("sha256_raw"),
-            "url": r.get("url"),
-            "bytes": r.get("bytes"),
-        }
-    return docs
+    return {str(r["id"]): {"sha256": r.get("sha256_raw")} for r in rows if r.get("status") == "ok"}
+
+
+def _load_index(run: Path) -> dict[str, dict] | None:
+    """id -> extracted-text sha256, if the run wrote an index; else None."""
+    path = INDEX_DIR / f"{run.name}.json"
+    if not path.exists():
+        return None
+    docs = json.loads(path.read_text()).get("docs", {})
+    return {k: {"sha256": v["sha256"]} for k, v in docs.items()}
+
+
+def load(run: Path) -> dict[str, dict]:
+    """Documents for a run keyed by id (raw manifest hashes)."""
+    return _load_manifest(run)
 
 
 def diff(current: dict, previous: dict) -> dict:
@@ -50,6 +57,14 @@ def diff(current: dict, previous: dict) -> dict:
         "changed": changed,
         "unchanged": len(cur & prev) - len(changed),
     }
+
+
+def compare(cur: Path, prev: Path) -> tuple[dict, str]:
+    """Diff two runs, using extracted-text hashes when both runs have an index, else raw hashes."""
+    ci, pi = _load_index(cur), _load_index(prev)
+    if ci is not None and pi is not None:
+        return diff(ci, pi), "extracted"
+    return diff(_load_manifest(cur), _load_manifest(prev)), "raw"
 
 
 def resolve(current: str | None = None, previous: str | None = None):
@@ -72,7 +87,7 @@ def resolve(current: str | None = None, previous: str | None = None):
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Diff two Bronze runs by raw document hash.")
+    ap = argparse.ArgumentParser(description="Diff two Bronze runs by document hash.")
     ap.add_argument("--current", help="run id or path (default: newest run)")
     ap.add_argument("--previous", help="run id or path (default: the run before current)")
     ap.add_argument("--json", action="store_true", help="emit JSON instead of a summary line")
@@ -88,14 +103,14 @@ def main() -> int:
     if prev is None or not (prev / "manifest.jsonl").exists():
         print(f"current={cur.name}: no previous run to compare against"); return 0
 
-    d = diff(load(cur), load(prev))
-    d.update({"current": cur.name, "previous": prev.name})
+    d, signal = compare(cur, prev)
+    d.update({"current": cur.name, "previous": prev.name, "signal": signal})
     drift = bool(d["added"] or d["removed"] or d["changed"])
 
     if args.json:
         print(json.dumps(d, indent=2))
     else:
-        print(f"drift {prev.name} -> {cur.name}: {len(d['added'])} added · "
+        print(f"drift {prev.name} -> {cur.name} (by {signal}): {len(d['added'])} added · "
               f"{len(d['removed'])} removed · {len(d['changed'])} changed · {d['unchanged']} unchanged")
         for key in ("added", "removed", "changed"):
             if d[key]:

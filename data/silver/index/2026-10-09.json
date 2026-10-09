@@ -1,0 +1,275 @@
+{
+  "run_id": "2026-10-09",
+  "docs": {
+    "AU-PRIVACY-AI": {
+      "sha256": "39ac04be139d01b8c974ddf6fe0bd42c0aaeb4b8b3286f7b47b8ea9b7dfde496",
+      "chars": 82834,
+      "chunks": 38
+    },
+    "AU-PRIVACY-AI_pdf1": {
+      "sha256": "e9a2f457c5af7e85a357317dd1f19c3476f682dcf1a3685c31e56d724c6aebbd",
+      "chars": 2724,
+      "chunks": 2
+    },
+    "AU-PRIVACY-AI_pdf2": {
+      "sha256": "4281721c50dc50e8e2d282335973960a27a9603d0b2d8ebccdaac493aea46060",
+      "chars": 3541,
+      "chunks": 2
+    },
+    "CCPA-CPRA": {
+      "sha256": "cda5ac6be9fd46e145ba0c0c70dab58c5d443aae5f44ca1e7d18d736139e069c",
+      "chars": 3942,
+      "chunks": 2
+    },
+    "CCPA-CPRA_pdf1": {
+      "sha256": "d0c4baa0e82b64a3042352f0183e6e06d67adaa2b282db4d390c694047641704",
+      "chars": 5371,
+      "chunks": 3
+    },
+    "CCPA-CPRA_pdf2": {
+      "sha256": "818e867a6e7e8336a656678ff3e0d44e87446170c670bd891d4a4e30090089e7",
+      "chars": 275887,
+      "chunks": 121
+    },
+    "CJIS-6.1": {
+      "sha256": "6093cedb10dbd5ef2e1cdb4eb9aca727b5e5ee58922967b06d5f89b3d076b431",
+      "chars": 5141,
+      "chunks": 2
+    },
+    "CJIS-6.1_pdf": {
+      "sha256": "dba84a6e9396912c52cc195a184c2b86d4f89a2b0062aa51cde8f43b710def59",
+      "chars": 1179040,
+      "chunks": 462
+    },
+    "CMMC": {
+      "sha256": "e9977b3babd0c617a73bdc51c7c6f7b55c4b11d2781d3628df15e7ef9d9e7176",
+      "chars": 166147,
+      "chunks": 72
+    },
+    "CO-AI": {
+      "sha256": "fc56e627bad19af81031e66bb2275e18160436d4aac2e86cd3b6645cfc06c201",
+      "chars": 6013,
+      "chunks": 3
+    },
+    "CO-AI_pdf1": {
+      "sha256": "2ec60912c701c67904a016f8d3aca233f54834860e6c9bea48be5ba538b7dded",
+      "chars": 25065,
+      "chunks": 11
+    },
+    "CO-AI_pdf2": {
+      "sha256": "b3b4ee1179a6b441ada3f880a6ac46f7249b95d4d1ebcb7b13703926a1e8523a",
+      "chars": 172363,
+      "chunks": 73
+    },
+    "COPPA": {
+      "sha256": "24a30edacc777d449dfe3f77941cfc273734262f4b42a7a06f480bf1dcf295b7",
+      "chars": 4669,
+      "chunks": 2
+    },
+    "DOJ-DSP": {
+      "sha256": "a319be82da92bb76292bb68ebe0ebc99300462e264f3a933f33966203f46fb3b",
+      "chars": 5835,
+      "chunks": 3
+    },
+    "EAR": {
+      "sha256": "75e482391202acd452e611f731cdeacab16e6b34b1e6aafff1578f861af8c0eb",
+      "chars": 112539,
+      "chunks": 52
+    },
+    "EAR_pdf1": {
+      "sha256": "eeb9bede9ad2957fd4584ee40b7b0965e38c3eceb48e31a2be2a369f673c7174",
+      "chars": 28608,
+      "chunks": 12
+    },
+    "EAR_pdf2": {
+      "sha256": "694c6bcdb881f50fcbae32eebef6a016cf124201985ef1ed1b974bef7d640170",
+      "chars": 46734,
+      "chunks": 20
+    },
+    "EU-AI-ACT": {
+      "sha256": "6b579cccbb18c50d3d52c8ad5285a843cc3803fcac676f4a7544524d1cfad86c",
+      "chars": 209334,
+      "chunks": 94
+    },
+    "FDA-AI-MD": {
+      "sha256": "b7e9a00c2b9d6c42d06d4906571f12c9f95389849968404828686125438c72f7",
+      "chars": 163965,
+      "chunks": 85
+    },
+    "FEDRAMP": {
+      "sha256": "c2d7ea7fb83cd76e66066f40f487aec94a081ec7557085874e92e98b82992f03",
+      "chars": 2577,
+      "chunks": 1
+    },
+    "FERPA": {
+      "sha256": "ab6bf9cd1aac9908d49ecd2780ed6bc1111a66271aa7bdde158c2bd70cafa3f1",
+      "chars": 85267,
+      "chunks": 39
+    },
+    "FRB-MRM-2026": {
+      "sha256": "8d4ee26bb29b163cb063a08899a89c998b8232ca69b60296c3217b772ad1bd21",
+      "chars": 2269,
+      "chunks": 1
+    },
+    "FRB-MRM-2026_pdf1": {
+      "sha256": "a6182bf4efe6b02547951e95d6910026eacab796f56587ee9206f85493413955",
+      "chars": 24104,
+      "chunks": 10
+    },
+    "FRB-MRM-2026_pdf2": {
+      "sha256": "c31844fbe4196d91b02e8b61586b5b5458f303581e090e87f5f3a6603641c778",
+      "chars": 21625,
+      "chunks": 9
+    },
+    "GDPR": {
+      "sha256": "37fdd566275dfd530ab0f0b2e013f186baa990b12a25f6287ecfd7e18562b412",
+      "chars": 352684,
+      "chunks": 163
+    },
+    "GLBA": {
+      "sha256": "7c6ae92071b7aeff03f81ecead4efbfec01437b5d2350a8a6833dd56e0f08d63",
+      "chars": 18952,
+      "chunks": 9
+    },
+    "HHS-PART2": {
+      "sha256": "cfb95735084fa4e9dce16241c131cd843c889858a2fe78e90ace72271d3ba9e2",
+      "chars": 142693,
+      "chunks": 66
+    },
+    "HIPAA": {
+      "sha256": "fd7d566d9fb7a4db6cfc3ae47c7527208b6e62f6194b543ba8705167552f246a",
+      "chars": 199999,
+      "chunks": 90
+    },
+    "IL-AIVIA": {
+      "sha256": "02e9fea1bf24e3f50d9548932050e2be54c863f8eaaf2ec277a2bbdbd0f682b9",
+      "chars": 1283,
+      "chunks": 1
+    },
+    "IRS-1075": {
+      "sha256": "6448ea356ba3d120937ba4fe8d329cf26c38648dd362bd96acf9e7f545d1066a",
+      "chars": 2047,
+      "chunks": 1
+    },
+    "IRS-1075_pdf1": {
+      "sha256": "013e525523ffd6f7f48aa8ab15a82258b6831719a7d1673bb0c9f760bc53d07c",
+      "chars": 601381,
+      "chunks": 222
+    },
+    "IRS-1075_pdf2": {
+      "sha256": "b67f4b377e3e187ba912bd7f36e710164cacb36ac3a38eda049b1a0632558fea",
+      "chars": 9581,
+      "chunks": 5
+    },
+    "NIST-800-171": {
+      "sha256": "450631047b4a2c9c3171edb29f8c164a5c5f6c80e438d2ed5ef664b98e1adf72",
+      "chars": 1238,
+      "chunks": 1
+    },
+    "NIST-800-171_pdf2": {
+      "sha256": "64ef62160e976f85647ad813b78036e514225df926a1e8610fc20fde563442ea",
+      "chars": 14578,
+      "chunks": 6
+    },
+    "NIST-800-53": {
+      "sha256": "970a0c71df9c3f93d24808ce94225918fb3cb6e752b78412ed2799199a84b371",
+      "chars": 3310,
+      "chunks": 2
+    },
+    "NIST-800-53_pdf2": {
+      "sha256": "1289624f73546e65ce03b9eb2512b247a2782f9af9fca3702f0e64f5831d1d9e",
+      "chars": 3647,
+      "chunks": 2
+    },
+    "NIST-AI-600-1": {
+      "sha256": "0971e735629b3684e54fab6bd881045d2a3b202106a3c74f1f09b2b35bdf4c9b",
+      "chars": 36732,
+      "chunks": 4
+    },
+    "NIST-AI-RMF": {
+      "sha256": "d72b259ef14133c93701ee5a3fa81e7746a253374dfb5dbbcc40897a73001ae2",
+      "chars": 2598,
+      "chunks": 1
+    },
+    "NIST-CSF2": {
+      "sha256": "2689586873953c5b798aaec07dd044deb766ed556e6654bd0135858527016814",
+      "chars": 70102,
+      "chunks": 28
+    },
+    "NYC-LL144": {
+      "sha256": "7c29be6392a61bc409255bb905e131f0e650f75e9ef35af594c9ff290cbee086",
+      "chars": 1394,
+      "chunks": 1
+    },
+    "NYC-LL144_pdf1": {
+      "sha256": "16dd0cc3399cca9da4847de9ecb79870c74bac0587a9886127a304307aa91edb",
+      "chars": 14475,
+      "chunks": 7
+    },
+    "NYC-LL144_pdf2": {
+      "sha256": "e816e166e8e70fef190b891b49eb964e413f53b485909a083e37daaa15726319",
+      "chars": 6907,
+      "chunks": 4
+    },
+    "OMB-M25-21": {
+      "sha256": "2accb9bddd0d59661dd4e130997c2ec5ea31390d40f40f92a424439144b83cad",
+      "chars": 67243,
+      "chunks": 29
+    },
+    "OMB-M25-22": {
+      "sha256": "1383a49ac091bb49ad9c6304a4d1defe616803c60232fd7f7ceb32e301dae805",
+      "chars": 35791,
+      "chunks": 15
+    },
+    "ONC-HTI1": {
+      "sha256": "c4ee83dc98351210c3c6efe758af33d78b355530456ed39c991c9329e2149f7f",
+      "chars": 3494,
+      "chunks": 2
+    },
+    "ONC-HTI1_pdf1": {
+      "sha256": "6686bdaf0d638a426525cefe563dbbe191845533920f71b97020107c242f2413",
+      "chars": 29761,
+      "chunks": 13
+    },
+    "ONC-HTI1_pdf2": {
+      "sha256": "028a422f1dcd3da5ef8577d7b96489a904843a74517194d839b028271ef8eaf8",
+      "chars": 32319,
+      "chunks": 14
+    },
+    "OWASP-LLM-2026": {
+      "sha256": "4955fc5fd6ac3896133f1a480cf76df753be444ba6eb33a80a41e56d8a027455",
+      "chars": 987,
+      "chunks": 1
+    },
+    "SECTION-508": {
+      "sha256": "d5e2ef20748f8fc99336a8ffabaf137120ec05bf47ea6a7b2dd0603deeb871dc",
+      "chars": 1202,
+      "chunks": 1
+    },
+    "SOX": {
+      "sha256": "0f9268b38b09398f7a86159d7567ec2940853f81fbb8c9bb15083360eaaabba7",
+      "chars": 8937,
+      "chunks": 4
+    },
+    "SOX_pdf1": {
+      "sha256": "2a6e084da1fd1158e7fa2d546e2e45acdc5bb5634e802750c1d7ab0cccb004c0",
+      "chars": 367348,
+      "chunks": 155
+    },
+    "SOX_pdf2": {
+      "sha256": "96125db61deb5b6b03156e7a5e75be5b5b05731aaf6e580f29ea38632bd93180",
+      "chars": 163052,
+      "chunks": 67
+    },
+    "TX-TRAIGA": {
+      "sha256": "562a99bf9893d65da94dfec3af308c2acad87233ae61f2b4da3afe8e55c5383c",
+      "chars": 1322,
+      "chunks": 1
+    },
+    "UK-DP-AI": {
+      "sha256": "64696ca916498d8e2a232e53a18296cfa4becdbb91fc48088c491529cbefc3b9",
+      "chars": 15258,
+      "chunks": 7
+    }
+  }
+}
