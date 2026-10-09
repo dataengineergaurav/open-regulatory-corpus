@@ -2,7 +2,9 @@
 
 **A public-only, machine-readable corpus of the rules that govern AI, privacy, cybersecurity, finance, and health care — scraped, cleaned, chunked, and shipped every month.**
 
-<!-- sync:headline -->38 public frameworks → 57 raw documents (46 MB) → **2,041** citation-ready chunks across **54** documents<!-- /sync:headline -->
+<!-- sync:headline -->
+38 public frameworks → 57 raw documents (46 MB) → **2,041** citation-ready chunks across **54** documents
+<!-- /sync:headline -->
 
 Drop them into a RAG pipeline, a spreadsheet, or a research notebook — no crawler required to consume it.
 

@@ -1,5 +1,6 @@
 """Stdlib unittest suite for the corpus statistics asset (no third-party deps)."""
 import pathlib
+import shutil
 import sys
 import tempfile
 import unittest
@@ -80,6 +81,21 @@ class TestRenderers(unittest.TestCase):
             self.assertIn("0", cs.gaps_table().splitlines()[0])
         finally:
             cs.load = saved
+
+
+class TestStatsAssetIntegrity(unittest.TestCase):
+    def test_load_raises_when_a_csv_is_missing(self):
+        import corpus_stats as cs
+        with tempfile.TemporaryDirectory() as d:
+            for name in ("corpus_stats", "domains", "top_documents", "paywalled"):
+                shutil.copy(cs.DATA_DIR / f"{name}.csv", pathlib.Path(d))
+            saved = cs.DATA_DIR
+            cs.DATA_DIR = pathlib.Path(d)
+            try:
+                with self.assertRaises(FileNotFoundError):
+                    cs.load()  # gaps.csv is absent -> must raise, never silently empty
+            finally:
+                cs.DATA_DIR = saved
 
 
 class TestVerifyStats(unittest.TestCase):

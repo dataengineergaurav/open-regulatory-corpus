@@ -15,6 +15,9 @@ DATA_DIR = ROOT / "data" / "stats"
 # Scalar columns that need a format other than the default (thousands-separated int).
 FORMATS = {"run_id": "str", "tokens": "tokens", "raw_mib": "mib", "top3_share": "pct"}
 
+# The asset is complete only when every one of these files is present.
+EXPECTED = ("corpus_stats", "gaps", "domains", "top_documents", "paywalled")
+
 
 def _fmt(kind: str, raw: str) -> str:
     if kind == "str":
@@ -29,13 +32,16 @@ def _fmt(kind: str, raw: str) -> str:
 
 
 def load() -> dict[str, list[dict]]:
-    """Every CSV in the asset, keyed by file stem. A missing directory raises."""
+    """Every CSV in the asset, keyed by file stem. A missing directory or file raises."""
     if not DATA_DIR.exists():
         raise FileNotFoundError(DATA_DIR)
     tables: dict[str, list[dict]] = {}
     for path in sorted(DATA_DIR.glob("*.csv")):
         with path.open(newline="") as f:
             tables[path.stem] = list(csv.DictReader(f))
+    missing = [name for name in EXPECTED if name not in tables]
+    if missing:
+        raise FileNotFoundError(f"stats asset incomplete, missing: {missing}")
     return tables
 
 

@@ -90,8 +90,9 @@ pixi run check-docs        # CI: exit 1 if README/HF card numbers are stale
 pixi run sync-published    # rewrite regions + update GitHub About + push HF card
 ```
 
-- Only text between `<!-- sync:* -->` markers is generated; surrounding prose stays hand-written.
-- Generated regions: `headline` and `stats` (README + HF card) and `gaps` (README + HF card + `docs/FAQ.md`). The empty-framework table is computed from the artifacts, so it has one owner and can't drift.
+- Only text between markers is generated; surrounding prose stays hand-written.
+- Marker syntax: `<!-- sync:<NAME> -->…<!-- /sync:<NAME> -->`, where `<NAME>` is a **renderer** (`headline`, `stats_bullets`, `gaps_table`, `domains_table`, `top_documents`) or a **scalar key** (`chunks`, `raw_mib`, `top3_share`, …). An unknown name makes `check-docs` fail.
+- Markers live in README, the HF card, and `docs/` (FAQ, DATA_DICTIONARY, DATA_PIPELINE, COOKBOOK, ARCHITECTURE, ROADMAP) plus the compliance-officer references. The numbers have one owner — the stats asset — so they can't drift.
 - `sync-published` is **idempotent** — it writes or commits only when something changed — and **degrades gracefully**: a GitHub permission failure warns but never blocks the release.
 - CI runs `check-docs` on every push/PR; the monthly release runs `sync-published` after publishing (needs `secrets.HF_TOKEN`; GitHub About also needs a token with repo-metadata scope, e.g. `secrets.REPO_ADMIN_TOKEN`).
 

@@ -114,16 +114,16 @@ def sync_markers(text: str) -> tuple[str, list[str]]:
         except KeyError:
             unknown.append(name)
             return m.group(0)
-        # block markers (multi-line) keep their newlines; inline markers stay flush
-        if "\n" in inner:
+        # renderers are always block content; a scalar is inline unless authored multi-line
+        if name in cs.RENDERERS or "\n" in inner:
             return f"<!-- sync:{name} -->\n{value}\n<!-- /sync:{name} -->"
         return f"<!-- sync:{name} -->{value}<!-- /sync:{name} -->"
 
     return MARKER.sub(repl, text), unknown
 
 
-def sync_markers_file(rel: str, check: bool) -> bool:
-    """Resolve the markers in one file; return True if it drifted or had unknown names."""
+def sync_markers_file(rel: str, check: bool) -> tuple[bool, list[str]]:
+    """Resolve the markers in one file; return (drifted, unknown names)."""
     text = _read(rel)
     new, unknown = sync_markers(text)
     for name in unknown:
@@ -131,7 +131,7 @@ def sync_markers_file(rel: str, check: bool) -> bool:
     drifted = new != text or bool(unknown)
     if drifted and not check:
         (ROOT / rel).write_text(new)
-    return drifted
+    return drifted, unknown
 
 
 def desired_description(s: dict) -> str:
@@ -210,8 +210,10 @@ def main() -> int:
             ".commandcode/skills/compliance-officer/references/project-context.md",
             ".commandcode/skills/compliance-officer/references/framework-watchlist.md")
     drift = False
+    unknown_names: list[str] = []
     for rel in docs:
-        d = sync_markers_file(rel, args.check)
+        d, unknown = sync_markers_file(rel, args.check)
+        unknown_names += unknown
         print(f"  {rel}: {'DRIFT' if d else 'ok'}")
         drift |= d
 
@@ -224,6 +226,9 @@ def main() -> int:
         print(f"  Hugging Face card: {'DRIFT' if d else 'ok'}")
         drift |= d
 
+    if unknown_names:
+        print(f"\nUNKNOWN MARKERS: {sorted(set(unknown_names))} — fix before publishing.")
+        return 1
     if args.check:
         if drift:
             print("\nDRIFT DETECTED — run `pixi run sync-published` to fix.")

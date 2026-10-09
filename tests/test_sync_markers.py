@@ -29,6 +29,33 @@ class TestSyncMarkers(unittest.TestCase):
         self.assertTrue(out.startswith("<!-- sync:gaps_table -->\n"), repr(out[:40]))
         self.assertTrue(out.endswith("\n<!-- /sync:gaps_table -->"), repr(out[-40:]))
 
+    def test_sync_markers_file_fails_closed_on_unknown(self):
+        import sync_published as sp
+        saved = sp._read
+        sp._read = lambda rel: "<!-- sync:nope -->1<!-- /sync:nope -->"
+        try:
+            result = sp.sync_markers_file("X.md", check=True)
+        finally:
+            sp._read = saved
+        self.assertEqual(result, (True, ["nope"]))
+
+    def test_sync_markers_file_detects_hand_edit(self):
+        import sync_published as sp
+        saved = sp._read
+        sp._read = lambda rel: "<!-- sync:docs -->999<!-- /sync:docs -->"
+        try:
+            drifted, unknown = sp.sync_markers_file("X.md", check=True)
+        finally:
+            sp._read = saved
+        self.assertTrue(drifted)
+        self.assertEqual(unknown, [])
+
+    def test_renderer_marker_authored_inline_is_idempotent(self):
+        import sync_published as sp
+        once, _ = sp.sync_markers("<!-- sync:gaps_table -->stale<!-- /sync:gaps_table -->")
+        twice, _ = sp.sync_markers(once)
+        self.assertEqual(once, twice)
+
     def test_idempotent(self):
         import sync_published as sp
         once, _ = sp.sync_markers("<!-- sync:docs -->0<!-- /sync:docs -->")
