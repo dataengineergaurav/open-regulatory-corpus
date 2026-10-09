@@ -1,43 +1,75 @@
-# Data Pipeline — Bronze → Silver (public-only, retain raw + all PDFs)
+# Data Pipeline — Bronze → Silver
 
-**Status:** 38 public → Bronze 58 raw (27 PDFs, 44M) → Silver 1519 chunks (54 docs) — patched 2026-09-01 (WAF/nav filtered, dedup).
-**Deps:** `pixi.toml` `scrapy>=2.18`, `trafilatura>=2.0`, `pymupdf>=1.28`, `datasets==2.20.0`
+The operational runbook. For *why* the stages exist and how the components fit, read [`ARCHITECTURE.md`](ARCHITECTURE.md). For field-level detail, see [`DATA_DICTIONARY.md`](DATA_DICTIONARY.md).
+
+**Status:** 38 public → Bronze 58 raw (27 PDFs + 31 HTML, 43 MB) → Silver 1,519 chunks (54 docs), run `2026-09-01_1903` — WAF/nav filtered, deduped.
+**Deps:** `pixi.toml` — `scrapy>=2.18`, `trafilatura>=2.0`, `pymupdf>=1.28`, `datasets==2.20.0`.
+
+---
 
 ## Medallion
 
 ### Bronze — full raw landing
+
 ```
 data/bronze/<run_id>/
-  raw/<ID>.html | <ID>.pdf | <ID>_pdfN.pdf   # 58 files, 44M
+  raw/<ID>.html | <ID>.pdf | <ID>_pdfN.pdf   # 58 files, 43 MB
   headers/<ID>.json
   manifest.jsonl                             # 70 lines: 58 ok + 8 skipped + 4 error
   scrapy_stats.json
 data/bronze/latest -> <run_id>
 data/sources.json                            # 46: 38 public + 8 skipped (ISO×6 + SOC2 + PCI-DSS)
 ```
-- `raw/` verbatim bytes, magic-byte ext (`pipelines.py:31`), `latest` symlink on `close_spider`.
-- `manifest.jsonl`: `ok` (bytes, sha256_raw), `skipped_public_only` (paywalled), `error` (WAF 403 / timeout).
-- WAF-blocked 4: `HIPAA`, `HHS-PART2`, `CMMC`, `IL-AIVIA` (Akamai) — log only.
+
+- `raw/` holds verbatim bytes; the extension comes from **magic bytes first** (`pipelines.py`), so a `.pdf` URL that returns HTML is stored as `.html`.
+- `manifest.jsonl` records one of three outcomes per source: `ok` (with `bytes`, `sha256_raw`), `skipped_public_only` (paywalled), or `error` (WAF 403 / timeout).
+- `latest` is repointed to the newest run on `close_spider`.
+- WAF-blocked (4): `HIPAA`, `HHS-PART2`, `CMMC`, `IL-AIVIA` (Akamai) — recorded, not hidden.
 
 ### Silver — cleaned + chunked
+
 ```
-data/silver/compliance_chunks.parquet   # 1519 rows, 1.7M, 54 docs
+data/silver/compliance_chunks.parquet   # 1,519 rows, ~1.6 MiB, 54 docs
 data/silver/silver_stats.json           # {run_id, chunks:1519, docs:54}
-scripts/build_silver.py                 # trafilatura + fitz → 512/50 → datasets.to_parquet()
+scripts/build_silver.py                 # trafilatura + PyMuPDF → 512/50 → datasets.to_parquet()
 ```
-- Schema: `framework_id, chunk_id ({ID}-{idx}), text, source, kind, token_est (words*1.33), sha256`
-- Distribution: `FDA-AI-MD 80`, `EAR 52`, `FERPA 39`, `AU-PRIVACY-AI 38`, etc. `EU-AI-ACT 0`, `GDPR 0` (WAF filtered), `BR-LGPD 0` (nav wrapper filtered).
-- Dedup by sha256, `CJIS-6.1` html/pdf disambiguated via `seen_iid`.
+
+- **Schema:** `framework_id, chunk_id ({ID}-{idx}), text, source, kind, token_est (words×1.33), sha256`
+- **Extraction:** HTML via `trafilatura` (with a tag-strip fallback under 500 chars); PDF via PyMuPDF, page-tagged `[Page N]`.
+- **Filtering:** drops WAF challenge pages (`AwsWaf`, "JavaScript is disabled"), the `BR-LGPD` nav wrapper, and anything under 200 chars.
+- **Dedup:** by `sha256` of the extracted text. `CJIS-6.1` html + pdf share a stem and are disambiguated via `seen_iid`.
+- **Distribution:** `kind` = 1,236 pdf / 283 html. Largest stems: `CJIS-6.1` 466, `IRS-1075` 228, `SOX` 226, `CCPA-CPRA` 126, `EAR` 84, `FDA-AI-MD` 80.
+- **Empty (0 chunks):** `EU-AI-ACT`, `GDPR` (EUR-Lex JS shell), `CMMC`, `HIPAA`, `HHS-PART2`, `IL-AIVIA` (WAF/timeout), `BR-LGPD` (nav wrapper). See [Troubleshooting](#troubleshooting).
+
+---
 
 ## Run
+
 ```bash
-pixi run pipeline run_id=2026-09-01          # full Bronze→Silver
-# stepwise:
+pixi run pipeline run_id=2026-09-01          # full Bronze → Silver
+```
+
+Or stepwise:
+
+```bash
 pixi run crawl run_id=2026-09-01
 pixi run verify-bronze
 pixi run build-silver
 pixi run verify-silver
 ```
+
+| Task | Command | Does |
+|---|---|---|
+| `crawl` | `python -m scrapy crawl compliance -a run_id=…` | Fetch all `public` sources into Bronze |
+| `verify-bronze` | `python scripts/verify_bronze.py` | Assert manifest/raw/header invariants |
+| `build-silver` | `python scripts/build_silver.py` | Extract, dedup, chunk → Parquet |
+| `verify-silver` | `python scripts/verify_silver.py` | Assert Silver exists with a plausible row count |
+| `verify` | both verifiers | `verify-bronze && verify-silver` |
+| `pipeline` | all four, chained | End-to-end |
+
+The verifiers are also wired into CI (`.github/workflows/ci.yml`) and the monthly release (`.github/workflows/monthly-release.yml`), so a broken run fails before it publishes.
+
+---
 
 ## Sources (38 in, 8 skipped)
 
@@ -45,12 +77,28 @@ pixi run verify-silver
 
 **Out (8):** ISO-42001, ISO-42005, ISO-23894, ISO-38507, ISO-5338, ISO-24028, SOC2, PCI-DSS (paywalled).
 
-## PDF inventory (latest, 44M)
-- **Direct PDFs (5):** NIST-CSF2, OMB-M25-21/22, BR-LGPD, CJIS-6.1 (`/view` → 4.2M)
-- **True PDFs on disk (27):** 3 direct + 22 secondary + 2 CJIS. `BR-LGPD.pdf` is HTML wrapper (true 1.2M PDF not landed).
+---
+
+## PDF inventory
+
+- **Direct PDFs (5):** NIST-CSF2, OMB-M25-21/22, BR-LGPD, CJIS-6.1 (`/view` → 4.2 MB true PDF).
+- **True PDFs on disk (27):** 3 direct + 22 secondary + 2 CJIS. `BR-LGPD.pdf` is an HTML wrapper (the true 1.2 MB PDF was not landed).
+
+---
 
 ## Troubleshooting
-- `HHS`/`business.defense.gov` 403: Akamai WAF. Add mirror `hhs.gov/guidance` / `dodcio.defense.gov/cmmc`.
-- `eur-lex` 2K truncated: `?displayAll=true` still JS shell. Fetch `https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=celex:32024R1689`.
-- `BR-LGPD` HTML wrapper: JS link, not `<a href$=.pdf>`. Add direct PDF manually.
-- `verify_bronze` hdr vs raw off by 1: `CJIS-6.1.html` + `.pdf` share stem → allowed `abs(raw-hdr)<=1`.
+
+- **`HHS` / `business.defense.gov` 403:** Akamai WAF. Add a mirror — `hhs.gov/guidance` or `dodcio.defense.gov/cmmc`.
+- **`eur-lex` ~2 KB truncated:** `?displayAll=true` still returns a JS shell. Fetch `https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=celex:32024R1689`.
+- **`BR-LGPD` HTML wrapper:** the PDF link is JS-generated, not an `<a href$=.pdf>`. Add the direct PDF manually.
+- **`CJIS-6.1` viewer URL:** `/view` serves an HTML viewer; the spider re-requests without `/view` to get the true PDF.
+- **`verify_bronze` header/raw off by one:** `CJIS-6.1.html` and `CJIS-6.1.pdf` share a stem, so the check allows `abs(raw − headers) <= 1`.
+- **A framework yields 0 chunks:** check `manifest.jsonl` for its `status` (`error` = WAF/timeout, `ok` but 0 chunks = filtered at extraction). Add filters in `build_silver.py` rather than mutating Bronze.
+
+---
+
+## Related
+
+- [`ARCHITECTURE.md`](ARCHITECTURE.md) — design, data flow, decisions, extension points
+- [`DATA_DICTIONARY.md`](DATA_DICTIONARY.md) — every artifact and field
+- [`FAQ.md`](FAQ.md#why-are-some-frameworks-empty) — why the gaps exist
