@@ -55,5 +55,32 @@ class TestCorpusStatsValues(unittest.TestCase):
                 cs.DATA_DIR = saved
 
 
+class TestRenderers(unittest.TestCase):
+    def test_renderers_registered_and_nonempty(self):
+        import corpus_stats as cs
+        self.assertEqual(
+            set(cs.RENDERERS),
+            {"headline", "stats_bullets", "gaps_table", "domains_table", "top_documents"},
+        )
+        for fn in cs.RENDERERS.values():
+            self.assertTrue(fn().strip())
+
+    def test_gaps_table_groups_by_cause_and_orders_deterministically(self):
+        import corpus_stats as cs
+        t = cs.gaps_table()
+        self.assertTrue(t.splitlines()[0].startswith("**5** of the 38"), t.splitlines()[0])
+        self.assertIn("| Framework | Why it's empty |", t)
+        self.assertEqual(cs.gaps_table(), t)
+
+    def test_gaps_table_handles_empty(self):
+        import corpus_stats as cs
+        saved = cs.load
+        cs.load = lambda: {"corpus_stats": saved()["corpus_stats"], "gaps": []}
+        try:
+            self.assertIn("0", cs.gaps_table().splitlines()[0])
+        finally:
+            cs.load = saved
+
+
 if __name__ == "__main__":
     unittest.main()
