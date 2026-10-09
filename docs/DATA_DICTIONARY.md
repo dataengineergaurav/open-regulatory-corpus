@@ -56,6 +56,8 @@ CFR-implemented rule); never an unofficial copy.
 
 Current contents: **46 entries = 38 public + 8 paywalled; 5 carry `mirrors`.**
 
+Validated by `scripts/validate_sources.py` against [`data/sources.schema.json`](../data/sources.schema.json) — required fields, types, `id` format/uniqueness, URL shape, and no unknown keys. CI runs it on every PR, so a malformed registry fails before a crawl.
+
 ---
 
 ## Framework ID conventions

@@ -8,6 +8,7 @@ version = "0.1.0"
 [tasks]
 crawl = { cmd = "python -m scrapy crawl compliance -a run_id={{ run_id }}", cwd = "scraper", description = "Crawl Bronze (run: pixi run crawl run_id=2026-09-01)" }
 verify-bronze = { cmd = "python scripts/verify_bronze.py", description = "Verify Bronze" }
+validate-sources = { cmd = "python scripts/validate_sources.py", description = "Validate data/sources.json against its schema" }
 build-silver = { cmd = "python scripts/build_silver.py", description = "Build Silver parquet" }
 build-silver-sections = { cmd = "python scripts/build_silver.py --section-aware", description = "Build Silver with section-aware chunking" }
 build-balanced = { cmd = "python scripts/build_balanced_slice.py", description = "Build a balanced per-framework slice (capped)" }

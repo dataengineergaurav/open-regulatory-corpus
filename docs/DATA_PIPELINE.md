@@ -64,6 +64,7 @@ pixi run verify-silver
 |---|---|---|
 | `crawl` | `python -m scrapy crawl compliance -a run_id=…` | Fetch all `public` sources into Bronze |
 | `verify-bronze` | `python scripts/verify_bronze.py` | Assert manifest/raw/header invariants |
+| `validate-sources` | `python scripts/validate_sources.py` | Validate `data/sources.json` against its schema |
 | `build-silver` | `python scripts/build_silver.py` | Extract, dedup, chunk → Parquet |
 | `build-balanced` | `python scripts/build_balanced_slice.py` | Cap each framework to build `balanced_slice.parquet` |
 | `verify-silver` | `python scripts/verify_silver.py` | Assert Silver exists with a plausible row count |
