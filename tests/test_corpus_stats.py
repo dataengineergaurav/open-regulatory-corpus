@@ -82,5 +82,11 @@ class TestRenderers(unittest.TestCase):
             cs.load = saved
 
 
+class TestVerifyStats(unittest.TestCase):
+    def test_stats_totals_match_artifacts(self):
+        import verify_stats as vs
+        self.assertEqual(vs.check(), [])
+
+
 if __name__ == "__main__":
     unittest.main()

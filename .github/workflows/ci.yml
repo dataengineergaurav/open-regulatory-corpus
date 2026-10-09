@@ -21,6 +21,13 @@ jobs:
           pixi run python scripts/verify_silver.py
           # Bronze verify only if raw present locally (not required in CI checkout)
           if [ -d "data/bronze/latest/raw" ]; then pixi run python scripts/verify_bronze.py; else echo "skip bronze verify (raw not in git, see Release)"; fi
+      - name: Stats CSVs current + consistent
+        run: |
+          pixi run build-stats
+          git diff --exit-code data/stats/
+          pixi run verify-stats
+      - name: Unit tests
+        run: pixi run test
       - name: Check published surfaces are in sync
         run: pixi run check-docs
       - name: Validate sources.json

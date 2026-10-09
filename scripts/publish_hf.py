@@ -55,6 +55,17 @@ def main():
             repo_id=REPO_ID,
             repo_type="dataset",
         )
+    # corpus statistics asset -> data/stats/<name>.csv
+    stats_dir = Path("data/stats")
+    if stats_dir.exists():
+        for csv_path in sorted(stats_dir.glob("*.csv")):
+            api.upload_file(
+                path_or_fileobj=str(csv_path),
+                path_in_repo=f"data/stats/{csv_path.name}",
+                repo_id=REPO_ID,
+                repo_type="dataset",
+                commit_message=f"chore: update stats {run_id}",
+            )
     if CARD.exists():
         api.upload_file(path_or_fileobj=str(CARD), path_in_repo="README.md", repo_id=REPO_ID, repo_type="dataset")
     print(f"published https://huggingface.co/datasets/{REPO_ID} (latest + dated {run_id})")

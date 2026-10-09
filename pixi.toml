@@ -10,9 +10,12 @@ crawl = { cmd = "python -m scrapy crawl compliance -a run_id=$RUN_ID", cwd = "sc
 verify-bronze = { cmd = "python scripts/verify_bronze.py", description = "Verify Bronze" }
 validate-sources = { cmd = "python scripts/validate_sources.py", description = "Validate data/sources.json against its schema" }
 build-silver = { cmd = "python scripts/build_silver.py", description = "Build Silver parquet" }
+build-stats = { cmd = "python scripts/build_stats.py", description = "Generate the corpus statistics CSVs" }
 build-silver-sections = { cmd = "python scripts/build_silver.py --section-aware", description = "Build Silver with section-aware chunking" }
 build-balanced = { cmd = "python scripts/build_balanced_slice.py", description = "Build a balanced per-framework slice (capped)" }
 verify-silver = { cmd = "python scripts/verify_silver.py", description = "Verify Silver" }
+verify-stats = { cmd = "python scripts/verify_stats.py", description = "Assert the stats CSVs match the artifacts" }
+test = { cmd = "python -m unittest discover -s tests -v", description = "Run the test suite" }
 verify-sources = { cmd = "python scripts/verify_sources.py", description = "Report per-source acquisition health (gaps)" }
 probe-gaps = { cmd = "python scripts/probe_gaps.py", description = "Probe empty frameworks for usable text" }
 detect-drift = { cmd = "python scripts/detect_drift.py", description = "Diff the newest Bronze run against the previous one (extracted-text hashes)" }
@@ -20,7 +23,7 @@ build-changelog = { cmd = "python scripts/build_changelog.py", description = "Re
 verify = { cmd = "python scripts/verify_bronze.py && python scripts/verify_silver.py && python scripts/verify_sources.py", description = "Verify Bronze+Silver + per-source acquisition health" }
 check-docs = { cmd = "python scripts/sync_published.py --check --no-about --no-hf", description = "Fail if README/HF card numbers drift from artifacts" }
 sync-published = { cmd = "python scripts/sync_published.py", description = "Sync README, HF card + GitHub About from artifacts" }
-pipeline = { cmd = "pixi run crawl && pixi run verify-bronze && pixi run build-silver && pixi run verify-silver", description = "Full Bronze→Silver pipeline (RUN_ID=2026-09-01 pixi run pipeline)" }
+pipeline = { cmd = "pixi run crawl && pixi run verify-bronze && pixi run build-silver && pixi run build-stats && pixi run verify-silver", description = "Full Bronze→Silver pipeline (RUN_ID=2026-09-01 pixi run pipeline)" }
 
 [dependencies]
 python = ">=3.11,<3.13"

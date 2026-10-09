@@ -66,6 +66,10 @@ jobs:
           pixi run build-balanced
           cp data/silver/balanced_slice.parquet dist/compliance-balanced-${RUN_ID}.parquet
           cp data/silver/balanced_slice.json dist/balanced_stats-${RUN_ID}.json
+          # Corpus statistics asset
+          pixi run build-stats
+          cp data/stats/corpus_stats.csv dist/corpus_stats-${RUN_ID}.csv
+          zip -j dist/corpus-stats-${RUN_ID}.zip data/stats/*.csv
           ls -lh dist/
           sha256sum dist/* > dist/SHA256SUMS.txt
           cat dist/SHA256SUMS.txt
@@ -98,6 +102,8 @@ jobs:
             dist/compliance-silver-${RUN_ID}.zip \
             dist/compliance-balanced-${RUN_ID}.parquet \
             dist/balanced_stats-${RUN_ID}.json \
+            dist/corpus-stats-${RUN_ID}.zip \
+            dist/corpus_stats-${RUN_ID}.csv \
             dist/SHA256SUMS.txt \
             dist/changelog-${RUN_ID}.md \
             dist/changelog-${RUN_ID}.json \
