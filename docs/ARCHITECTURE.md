@@ -96,8 +96,10 @@ for each raw file:
     filter noise      (WAF challenge pages, nav chrome, too-short docs)
     dedup             (by sha256 of extracted text, across all frameworks)
     chunk             (512 tokens, 50 overlap, ≈384 words, min 50 words)
+                      (opt-in --section-aware: split on numbered headings first)
+    flag quality      (short / table_heavy / fragmented / low_alpha / garbled)
     emit row          {framework_id, chunk_id, text, source, kind, token_est, sha256}
-write Parquet + silver_stats.json
+write Parquet + silver_stats.json + quality_report.json
 ```
 
 It is intentionally the *only* place extraction logic lives. Change chunking here and nothing else needs to know.

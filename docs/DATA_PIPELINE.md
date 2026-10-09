@@ -38,6 +38,8 @@ scripts/build_silver.py                 # trafilatura + PyMuPDF → 512/50 → d
 - **Extraction:** HTML via `trafilatura` (with a tag-strip fallback under 500 chars); PDF via PyMuPDF, page-tagged `[Page N]`.
 - **Filtering:** drops WAF challenge pages (`AwsWaf`, "JavaScript is disabled"), the `BR-LGPD` nav wrapper, and anything under 200 chars.
 - **Dedup:** by `sha256` of the extracted text. `CJIS-6.1` html + pdf share a stem and are disambiguated via `seen_iid`.
+- **Section-aware chunking (opt-in):** `python scripts/build_silver.py --section-aware` splits on numbered headings (`Article 5`, `§ 164.312`, `AC-2`) when at least 3 are found, falling back to the fixed window otherwise. Default is unchanged.
+- **Quality report:** each run writes `data/silver/quality_report.json` — per-document flags (`short`, `table_heavy`, `fragmented`, `low_alpha`, `garbled`) so a flattened table isn't mistaken for prose.
 - **Distribution:** `kind` = 1,236 pdf / 283 html. Largest stems: `CJIS-6.1` 466, `IRS-1075` 228, `SOX` 226, `CCPA-CPRA` 126, `EAR` 84, `FDA-AI-MD` 80.
 - **Empty (0 chunks):** `EU-AI-ACT`, `GDPR` (EUR-Lex JS shell), `CMMC`, `HIPAA`, `HHS-PART2`, `IL-AIVIA` (WAF/timeout), `BR-LGPD` (nav wrapper). See [Troubleshooting](#troubleshooting).
 
