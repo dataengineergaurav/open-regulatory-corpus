@@ -2,7 +2,7 @@
   "source": "data/silver/compliance_chunks.parquet",
   "cap": 30,
   "seed": 0,
-  "chunks": 468,
-  "frameworks": 31,
+  "chunks": 595,
+  "frameworks": 33,
   "max_per_framework": 30
 }

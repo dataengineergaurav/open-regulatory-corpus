@@ -3,7 +3,7 @@
 **A public-only, machine-readable corpus of the rules that govern AI, privacy, cybersecurity, finance, and health care — scraped, cleaned, chunked, and shipped every month.**
 
 <!-- sync:headline -->
-38 public frameworks → 58 raw documents (43 MB) → **1,519** citation-ready chunks across **54** documents
+38 public frameworks → 57 raw documents (46 MB) → **2,041** citation-ready chunks across **54** documents
 <!-- /sync:headline -->
 
 Drop them into a RAG pipeline, a spreadsheet, or a research notebook — no crawler required to consume it.
@@ -140,14 +140,14 @@ Full field-by-field reference: [`docs/DATA_DICTIONARY.md`](docs/DATA_DICTIONARY.
 ## By the numbers
 
 <!-- sync:stats -->
-Measured from `data/silver/compliance_chunks.parquet` (run `2026-09-01_1903`):
+Measured from `data/silver/compliance_chunks.parquet` (run `2026-10-09`):
 
-- **1,519** chunks across **54** documents, spanning **31 of 38** public frameworks
-- **~763,236** estimated tokens of compliance text
-- **1,236** PDF chunks / **283** HTML chunks
+- **2,041** chunks across **54** documents, spanning **33 of 38** public frameworks
+- **~1,029,983** estimated tokens of compliance text
+- **1,292** PDF chunks / **749** HTML chunks
 - **384**-word median chunk length
-- Largest documents: **CJIS-6.1** (466), **IRS-1075** (228), **SOX** (226), **CCPA-CPRA** (126)
-- Bronze: **58** raw files (**27** PDF · **31** HTML, **43** MB); manifest **58** ok · **8** skipped · **4** error
+- Largest documents: **CJIS-6.1** (464), **IRS-1075** (228), **SOX** (226), **GDPR** (163)
+- Bronze: **57** raw files (**25** PDF · **32** HTML, **46** MB); manifest **57** ok · **8** skipped · **3** error
 <!-- /sync:stats -->
 
 > The top three documents alone are ~55% of all chunks. That's a real characteristic of regulatory text (CJIS and SOX are enormous), and something to weight for when sampling.
